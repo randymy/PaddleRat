@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+
+# Environment
+.env
+
+# Data
+data/*.db-shm
+data/*.db-wal
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Legacy flat files
+files/
+
+# Temp exploration scripts
+explore*.js
