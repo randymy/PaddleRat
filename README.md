@@ -1,4 +1,4 @@
-# PaddleRats
+# PaddleRat
 
 A coordination app for platform tennis players. You have a court booked — now find 3 more players, fast.
 
