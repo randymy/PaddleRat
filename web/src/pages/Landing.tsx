@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import ratkingImg from "../assets/ratking.png";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -40,6 +41,7 @@ export default function Landing() {
       </nav>
 
       <section className="hero-section">
+        <img src={ratkingImg} alt="The Rat King and his Paddle Rats" className="hero-image" />
         <h1 className="hero-title">
           Court booked.<br />
           Need 3 more players.<br />
