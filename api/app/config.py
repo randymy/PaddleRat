@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
     expiry_check_interval_seconds: int = 60
+    jwt_secret: str = "change-me-in-production"
+    jwt_expiry_hours: int = 72
+    magic_link_expiry_minutes: int = 15
+    app_url: str = "http://localhost:8000"
 
     model_config = SettingsConfigDict(env_file=str(_env_file), env_file_encoding="utf-8")
 

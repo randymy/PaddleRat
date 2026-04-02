@@ -4,7 +4,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 
 from app.config import settings
-from app.routers import admin, contacts, groups, sessions, webhooks
+from app.routers import admin, auth, contacts, groups, sessions, webhooks
 from app.services.expiry import check_expired_invitations
 
 scheduler = AsyncIOScheduler()
@@ -31,6 +31,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(auth.router)
 app.include_router(sessions.router)
 app.include_router(contacts.router)
 app.include_router(groups.router)
