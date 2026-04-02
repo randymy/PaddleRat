@@ -16,7 +16,7 @@ A **RatKing** (session organizer) sends SMS invites to their paddle friends. Pla
 ## Architecture
 
 ```
-PaddleRats/
+PaddleRat/
 ├── api/          # FastAPI backend (Python)
 │   ├── app/
 │   │   ├── routers/      # REST endpoints
