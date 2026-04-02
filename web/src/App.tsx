@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import NewSession from "./pages/NewSession";
 import SessionDetail from "./pages/SessionDetail";
 import Contacts from "./pages/Contacts";
+import Join from "./pages/Join";
 import "./App.css";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/join/:code" element={<Join />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

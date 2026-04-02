@@ -31,7 +31,7 @@ async def get_current_user(
         payload = decode_jwt(token)
         if not payload:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
-        user_id = payload["sub"]
+        user_id = int(payload["sub"])
 
     # Fall back to X-User-Id header (dev only)
     elif x_user_id is not None:

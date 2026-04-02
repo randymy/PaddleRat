@@ -4,6 +4,7 @@ import {
   getContacts,
   importContacts,
   deleteContact,
+  createInviteLink,
   type Contact,
 } from "../lib/api";
 
@@ -14,6 +15,7 @@ export default function Contacts() {
   const [importText, setImportText] = useState("");
   const [importError, setImportError] = useState("");
   const [importing, setImporting] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
 
   function load() {
     getContacts().then(setContacts).finally(() => setLoading(false));
@@ -76,9 +78,41 @@ export default function Contacts() {
         <Link to="/" className="btn-small btn-secondary">&larr; Back</Link>
       </header>
 
-      <button onClick={() => setShowImport(!showImport)} className="btn">
-        {showImport ? "Cancel" : "Import Contacts"}
-      </button>
+      <div className="contact-buttons">
+        <button
+          onClick={async () => {
+            const res = await createInviteLink();
+            const link = `${window.location.origin}${res.link}`;
+            setInviteLink(link);
+            navigator.clipboard.writeText(link).catch(() => {});
+          }}
+          className="btn"
+        >
+          Share Invite Link
+        </button>
+        <button onClick={() => setShowImport(!showImport)} className="btn btn-secondary">
+          {showImport ? "Cancel" : "Paste Contacts"}
+        </button>
+      </div>
+
+      {inviteLink && (
+        <div className="invite-link-box">
+          <p>Send this link to your paddle friends:</p>
+          <div className="invite-link-row">
+            <input type="text" value={inviteLink} readOnly />
+            <button
+              className="btn-small"
+              onClick={() => {
+                navigator.clipboard.writeText(inviteLink);
+                alert("Link copied!");
+              }}
+            >
+              Copy
+            </button>
+          </div>
+          <p className="empty">They'll tap it, find themselves in the APTA database, and enter their phone number.</p>
+        </div>
+      )}
 
       {showImport && (
         <form onSubmit={handleImport} className="import-form">

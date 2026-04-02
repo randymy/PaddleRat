@@ -34,7 +34,8 @@ export default function Login() {
         const token = res._dev_link.split("token=")[1];
         const verifyRes = await apiVerify(token);
         login(verifyRes.token, verifyRes.user);
-        navigate("/");
+        window.location.href = "/";
+        return;
       }
     } catch (err: any) {
       setError(err.message);

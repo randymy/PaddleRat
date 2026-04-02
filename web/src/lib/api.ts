@@ -102,6 +102,44 @@ export async function deleteGroup(id: number) {
   return request<void>(`/groups/${id}`, { method: "DELETE" });
 }
 
+// Invite links (public — no auth needed)
+export async function createInviteLink() {
+  return request<{ code: string; link: string; ratking_name: string }>(
+    "/invite/link",
+    { method: "POST" }
+  );
+}
+
+export async function getInviteInfo(code: string) {
+  const res = await fetch(`${API_URL}/invite/link/${code}`);
+  if (!res.ok) throw new Error("Invalid invite link");
+  return res.json() as Promise<{ ratking_name: string }>;
+}
+
+export async function searchPlayers(q: string) {
+  const res = await fetch(`${API_URL}/invite/search?q=${encodeURIComponent(q)}`);
+  if (!res.ok) return [];
+  return res.json() as Promise<{ id: number; name: string; pti: number | null }[]>;
+}
+
+export async function joinViaLink(code: string, userId: number, phone: string) {
+  const res = await fetch(`${API_URL}/invite/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, user_id: userId, phone }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Failed to join" }));
+    throw new Error(err.detail);
+  }
+  return res.json() as Promise<{
+    status: string;
+    name: string;
+    pti: number | null;
+    message: string;
+  }>;
+}
+
 // Types
 export interface User {
   id: number;

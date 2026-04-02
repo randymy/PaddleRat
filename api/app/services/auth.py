@@ -33,7 +33,7 @@ def verify_magic_token(token: str) -> dict | None:
 def create_jwt(user_id: int, role: str) -> str:
     """Create a JWT for an authenticated user."""
     payload = {
-        "sub": user_id,
+        "sub": str(user_id),
         "role": role,
         "exp": datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expiry_hours),
         "iat": datetime.now(timezone.utc),
