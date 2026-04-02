@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (
+    DateTime,
     Float,
     ForeignKey,
     Index,
@@ -8,6 +9,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -26,7 +28,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="rat")
     pti: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        nullable=False, server_default="now()"
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 
@@ -40,7 +42,7 @@ class Contact(Base):
     nickname: Mapped[str | None] = mapped_column(Text, nullable=True)
     priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
-        nullable=False, server_default="now()"
+        nullable=False, server_default=func.now()
     )
 
     owner: Mapped["User"] = relationship(foreign_keys=[owner_id])
@@ -55,7 +57,7 @@ class Group(Base):
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        nullable=False, server_default="now()"
+        nullable=False, server_default=func.now()
     )
 
     owner: Mapped["User"] = relationship()
@@ -79,12 +81,12 @@ class Session(Base):
     ratking_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     location: Mapped[str] = mapped_column(Text, nullable=False)
     court_number: Mapped[str | None] = mapped_column(Text, nullable=True)
-    scheduled_at: Mapped[datetime] = mapped_column(nullable=False)
+    scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     slots_needed: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
     expires_in_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=120)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="drafting")
     created_at: Mapped[datetime] = mapped_column(
-        nullable=False, server_default="now()"
+        nullable=False, server_default=func.now()
     )
 
     ratking: Mapped["User"] = relationship()
@@ -109,9 +111,9 @@ class Invitation(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     tier: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
-    invited_at: Mapped[datetime] = mapped_column(nullable=False, server_default="now()")
-    responded_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    expires_at: Mapped[datetime] = mapped_column(nullable=False)
+    invited_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    responded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     session: Mapped["Session"] = relationship(back_populates="invitations")
     user: Mapped["User"] = relationship()

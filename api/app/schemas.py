@@ -49,6 +49,21 @@ class ContactCreate(BaseModel):
     priority: int = 0
 
 
+class ContactImportItem(BaseModel):
+    name: str
+    phone: str
+
+
+class ContactImportRequest(BaseModel):
+    contacts: list[ContactImportItem]
+
+
+class ContactImportResult(BaseModel):
+    imported: int
+    skipped: int
+    contacts: list[ContactOut]
+
+
 # ── Groups ───────────────────────────────────────────────────────────────
 
 class GroupOut(BaseModel):

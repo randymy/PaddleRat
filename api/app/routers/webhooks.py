@@ -1,5 +1,3 @@
-import re
-
 from fastapi import APIRouter, Depends, Form
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,16 +6,9 @@ from app.dependencies import get_db
 from app.models import User
 from app.services import invitation as inv_service
 from app.services.sms import sms_client
+from app.utils import normalize_phone
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
-
-
-def normalize_phone(phone: str) -> str:
-    """Strip to digits, ensure +1 prefix for US numbers."""
-    digits = re.sub(r"[^\d]", "", phone)
-    if len(digits) == 10:
-        digits = "1" + digits
-    return f"+{digits}"
 
 
 @router.post("/sms/inbound")
