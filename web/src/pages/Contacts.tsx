@@ -75,7 +75,7 @@ export default function Contacts() {
     <div className="page">
       <header className="header">
         <h1>Contacts</h1>
-        <Link to="/" className="btn-small btn-secondary">&larr; Back</Link>
+        <Link to="/dashboard" className="btn-small btn-secondary">&larr; Back</Link>
       </header>
 
       <div className="contact-buttons">

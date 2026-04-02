@@ -17,7 +17,7 @@ export default function Login() {
   if (urlToken) {
     apiVerify(urlToken).then(({ token, user }) => {
       login(token, user);
-      navigate("/");
+      navigate("/dashboard");
     }).catch(() => setError("Invalid or expired link"));
     return <div className="page"><p>Verifying...</p></div>;
   }
@@ -34,7 +34,7 @@ export default function Login() {
         const token = res._dev_link.split("token=")[1];
         const verifyRes = await apiVerify(token);
         login(verifyRes.token, verifyRes.user);
-        window.location.href = "/";
+        window.location.href = "/dashboard";
         return;
       }
     } catch (err: any) {
@@ -56,7 +56,7 @@ export default function Login() {
 
   return (
     <div className="page">
-      <h1>PaddleRats</h1>
+      <h1>PaddleRat</h1>
       <p>Sign in to coordinate your next session.</p>
       <form onSubmit={handleSubmit}>
         <input

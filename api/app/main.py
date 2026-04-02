@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import admin, auth, contacts, groups, invite, sessions, webhooks
+from app.routers import admin, auth, contacts, groups, invite, sessions, waitlist, webhooks
 from app.services.expiry import check_expired_invitations
 
 scheduler = AsyncIOScheduler()
@@ -49,6 +49,7 @@ app.include_router(sessions.router)
 app.include_router(contacts.router)
 app.include_router(groups.router)
 app.include_router(invite.router)
+app.include_router(waitlist.router)
 app.include_router(webhooks.router)
 app.include_router(admin.router)
 

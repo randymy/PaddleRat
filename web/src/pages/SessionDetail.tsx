@@ -55,7 +55,7 @@ export default function SessionDetail() {
 
   return (
     <div className="page">
-      <button onClick={() => navigate("/")} className="btn-small btn-secondary back-btn">
+      <button onClick={() => navigate("/dashboard")} className="btn-small btn-secondary back-btn">
         &larr; Back
       </button>
 
