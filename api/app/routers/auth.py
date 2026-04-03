@@ -33,18 +33,18 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if user.role not in ("ratking", "admin"):
         raise HTTPException(status_code=403, detail="Only RatKings and admins can log in")
 
-    token = create_magic_token(user.id, user.email)
+    token = await create_magic_token(db, user.id)
+    await db.commit()
     link = f"{settings.app_url}/login?token={token}"
 
     email_client.send(
         to_email=user.email,
-        subject="PaddleRats Login Link",
+        subject="PaddleRat Login Link",
         body=f"Click to log in: {link}\n\nThis link expires in {settings.magic_link_expiry_minutes} minutes.",
     )
 
     response = {"status": "magic_link_sent", "message": f"Check your email ({body.email})"}
-    # Dev only: include the link so we can test without real email
-    if settings.sms_backend == "mock" or settings.app_url.startswith("http://localhost"):
+    if settings.app_url.startswith("http://localhost"):
         response["_dev_link"] = link
     return response
 
@@ -52,7 +52,8 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 @router.get("/verify")
 async def verify(token: str, db: AsyncSession = Depends(get_db)):
     """Verify a magic link token and return a JWT."""
-    data = verify_magic_token(token)
+    data = await verify_magic_token(db, token)
+    await db.commit()
     if not data:
         raise HTTPException(status_code=401, detail="Invalid or expired link")
 

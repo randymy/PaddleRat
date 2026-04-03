@@ -2,37 +2,40 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-
-# In-memory store for magic link tokens (swap for Redis in production)
-_pending_tokens: dict[str, dict] = {}
+from app.models import MagicToken
 
 
-def create_magic_token(user_id: int, email: str) -> str:
-    """Generate a magic link token and store it."""
+async def create_magic_token(db: AsyncSession, user_id: int) -> str:
+    """Generate a magic link token and store in DB."""
     token = secrets.token_urlsafe(32)
-    _pending_tokens[token] = {
-        "user_id": user_id,
-        "email": email,
-        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=settings.magic_link_expiry_minutes),
-    }
+    record = MagicToken(
+        token=token,
+        user_id=user_id,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=settings.magic_link_expiry_minutes),
+    )
+    db.add(record)
+    await db.flush()
     return token
 
 
-def verify_magic_token(token: str) -> dict | None:
-    """Verify a magic link token. Token stays valid for 30s after first use."""
-    data = _pending_tokens.get(token)
-    if not data:
+async def verify_magic_token(db: AsyncSession, token: str) -> dict | None:
+    """Verify a magic link token. Marks as used but allows reuse for 30s."""
+    result = await db.execute(select(MagicToken).where(MagicToken.token == token))
+    record = result.scalar_one_or_none()
+    if not record:
         return None
-    if datetime.now(timezone.utc) > data["expires_at"]:
-        _pending_tokens.pop(token, None)
+    if datetime.now(timezone.utc) > record.expires_at:
         return None
-    # On first use, shorten expiry to 30s so the token can't be reused long-term
-    if "first_used" not in data:
-        data["first_used"] = True
-        data["expires_at"] = datetime.now(timezone.utc) + timedelta(seconds=30)
-    return data
+    # On first use, shorten expiry to 30s
+    if not record.used:
+        record.used = True
+        record.expires_at = datetime.now(timezone.utc) + timedelta(seconds=30)
+        await db.flush()
+    return {"user_id": record.user_id}
 
 
 def create_jwt(user_id: int, role: str) -> str:

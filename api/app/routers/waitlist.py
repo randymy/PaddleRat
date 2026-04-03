@@ -111,8 +111,8 @@ async def approve_waitlist(
     await db.flush()
 
     # Send them a magic link
-    token = create_magic_token(ratking.id, ratking.email)
-    link = f"{settings.app_url}/auth/verify?token={token}"
+    token = await create_magic_token(db, ratking.id)
+    link = f"{settings.app_url}/login?token={token}"
 
     email_client.send(
         to_email=entry.email,
