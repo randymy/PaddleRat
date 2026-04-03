@@ -151,10 +151,13 @@ export default function NewSession() {
               value={expiryMinutes}
               onChange={(e) => setExpiryMinutes(Number(e.target.value))}
             >
+              <option value={20}>20 minutes</option>
               <option value={60}>1 hour</option>
               <option value={120}>2 hours</option>
               <option value={240}>4 hours</option>
               <option value={480}>8 hours</option>
+              <option value={1440}>24 hours</option>
+              <option value={2880}>48 hours</option>
             </select>
           </label>
         </div>
