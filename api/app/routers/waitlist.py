@@ -59,6 +59,14 @@ async def join_waitlist(
     db.add(entry)
     await db.commit()
 
+    # Notify admin
+    if settings.admin_email:
+        email_client.send(
+            to_email=settings.admin_email,
+            subject=f"New PaddleRat waitlist signup: {body.name}",
+            body=f"{body.name} ({body.email}) just signed up for the waitlist.\n\nApprove them at {settings.app_url}/admin",
+        )
+
     return WaitlistResponse(
         status="joined",
         message="You're on the list! We'll send you a login link when it's your turn.",

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     app_url: str = "http://localhost:8000"
     resend_api_key: str = ""
     from_email: str = "PaddleRat <onboarding@resend.dev>"
+    admin_email: str = ""
 
     model_config = SettingsConfigDict(env_file=str(_env_file), env_file_encoding="utf-8")
 

@@ -33,6 +33,9 @@ export default function Dashboard() {
       <nav className="nav">
         <Link to="/sessions/new" className="btn">New Session</Link>
         <Link to="/contacts" className="btn btn-secondary">Contacts</Link>
+        {user?.role === "admin" && (
+          <Link to="/admin" className="btn btn-secondary">Admin</Link>
+        )}
       </nav>
 
       <h2>Your Sessions</h2>
