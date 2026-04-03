@@ -7,8 +7,6 @@ import {
   getGroup,
   type Contact,
   type Group,
-  type GroupDetail,
-  type GroupMemberInfo,
   type CreateSessionPayload,
 } from "../lib/api";
 
