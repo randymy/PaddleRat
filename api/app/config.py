@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     jwt_expiry_hours: int = 72
     magic_link_expiry_minutes: int = 15
     app_url: str = "http://localhost:8000"
+    resend_api_key: str = ""
+    from_email: str = "PaddleRat <onboarding@resend.dev>"
 
     model_config = SettingsConfigDict(env_file=str(_env_file), env_file_encoding="utf-8")
 
