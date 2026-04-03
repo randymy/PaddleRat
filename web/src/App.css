@@ -315,6 +315,87 @@ h2 {
   margin: 20px 0 12px;
 }
 
+/* Section headers */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 10px;
+}
+
+.contact-count {
+  color: #888;
+  font-size: 0.9em;
+}
+
+/* List chips */
+.list-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.list-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.list-chip {
+  padding: 6px 14px;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.list-chip:hover {
+  background: #d0d0d0;
+}
+
+.list-chip.active {
+  background: #FF6B00;
+  color: white;
+}
+
+/* List detail */
+.list-detail {
+  background: white;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.list-detail h3 {
+  margin: 0;
+}
+
+/* Add to list */
+.add-to-list {
+  margin-top: 10px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.add-row {
+  background: #f9f9f9;
+}
+
+/* Inline form */
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.inline-form input {
+  flex: 1;
+}
+
 /* Contact buttons */
 .contact-buttons {
   display: flex;

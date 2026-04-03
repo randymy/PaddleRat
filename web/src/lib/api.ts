@@ -98,8 +98,25 @@ export async function createGroup(name: string) {
   });
 }
 
+export async function getGroup(id: number) {
+  return request<GroupDetail>(`/groups/${id}`);
+}
+
 export async function deleteGroup(id: number) {
   return request<void>(`/groups/${id}`, { method: "DELETE" });
+}
+
+export async function addGroupMember(groupId: number, contactId: number) {
+  return request<{ status: string }>(`/groups/${groupId}/members`, {
+    method: "POST",
+    body: JSON.stringify({ contact_id: contactId }),
+  });
+}
+
+export async function removeGroupMember(groupId: number, contactId: number) {
+  return request<void>(`/groups/${groupId}/members/${contactId}`, {
+    method: "DELETE",
+  });
 }
 
 // Invite links (public — no auth needed)
@@ -190,6 +207,20 @@ export interface Group {
   owner_id: number;
   name: string;
   created_at: string;
+}
+
+export interface GroupMemberInfo {
+  contact_id: number;
+  name: string;
+  pti: number | null;
+  phone: string | null;
+  user_id: number;
+}
+
+export interface GroupDetail {
+  id: number;
+  name: string;
+  members: GroupMemberInfo[];
 }
 
 export interface CreateSessionPayload {

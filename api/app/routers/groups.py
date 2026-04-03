@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.orm import selectinload
+
 from app.dependencies import get_current_user, get_db
 from app.models import Contact, Group, GroupMember, User
-from app.schemas import GroupCreate, GroupMemberAdd, GroupOut
+from app.schemas import ContactOut, GroupCreate, GroupMemberAdd, GroupOut
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
@@ -31,6 +33,42 @@ async def create_group(
     await db.commit()
     await db.refresh(group)
     return group
+
+
+@router.get("/{group_id}")
+async def get_group(
+    group_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get group with its members (contacts with user details)."""
+    group = await db.get(Group, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    if group.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not your group")
+
+    result = await db.execute(
+        select(GroupMember)
+        .where(GroupMember.group_id == group_id)
+        .options(selectinload(GroupMember.contact).selectinload(Contact.user))
+    )
+    members = result.scalars().all()
+
+    return {
+        "id": group.id,
+        "name": group.name,
+        "members": [
+            {
+                "contact_id": m.contact_id,
+                "name": m.contact.user.name,
+                "pti": m.contact.user.pti,
+                "phone": m.contact.user.phone,
+                "user_id": m.contact.user_id,
+            }
+            for m in members
+        ],
+    }
 
 
 @router.delete("/{group_id}", status_code=204)

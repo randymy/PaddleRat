@@ -2,74 +2,91 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   getContacts,
-  importContacts,
   deleteContact,
   createInviteLink,
+  getGroups,
+  getGroup,
+  createGroup,
+  deleteGroup,
+  addGroupMember,
+  removeGroupMember,
   type Contact,
+  type Group,
+  type GroupDetail,
 } from "../lib/api";
 
 export default function Contacts() {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showImport, setShowImport] = useState(false);
-  const [importText, setImportText] = useState("");
-  const [importError, setImportError] = useState("");
-  const [importing, setImporting] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const [showNewList, setShowNewList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [showAddToList, setShowAddToList] = useState(false);
 
   function load() {
-    getContacts().then(setContacts).finally(() => setLoading(false));
+    Promise.all([getContacts(), getGroups()])
+      .then(([c, g]) => {
+        setContacts(c);
+        setGroups(g);
+      })
+      .finally(() => setLoading(false));
   }
 
   useEffect(load, []);
 
-  async function handleImport(e: React.FormEvent) {
-    e.preventDefault();
-    setImportError("");
-
-    // Parse the text: expect "Name, Phone" per line
-    const lines = importText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l);
-
-    const parsed = lines.map((line) => {
-      const parts = line.split(/[,\t]+/).map((p) => p.trim());
-      if (parts.length < 2) return null;
-      return { name: parts[0], phone: parts[1] };
-    });
-
-    const valid = parsed.filter(Boolean) as { name: string; phone: string }[];
-
-    if (valid.length === 0) {
-      setImportError(
-        'Enter contacts as "Name, Phone" — one per line.'
-      );
-      return;
-    }
-
-    setImporting(true);
-    try {
-      const result = await importContacts(valid);
-      setImportText("");
-      setShowImport(false);
-      load();
-      alert(
-        `Imported ${result.imported} contact${result.imported !== 1 ? "s" : ""}` +
-          (result.skipped ? ` (${result.skipped} already existed)` : "")
-      );
-    } catch (err: any) {
-      setImportError(err.message);
-    } finally {
-      setImporting(false);
-    }
-  }
-
-  async function handleDelete(id: number, name: string) {
+  async function handleDeleteContact(id: number, name: string) {
     if (!confirm(`Remove ${name} from your contacts?`)) return;
     await deleteContact(id);
     load();
+    if (selectedGroup) {
+      const updated = await getGroup(selectedGroup.id);
+      setSelectedGroup(updated);
+    }
   }
+
+  async function handleCreateList(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newListName.trim()) return;
+    await createGroup(newListName.trim());
+    setNewListName("");
+    setShowNewList(false);
+    load();
+  }
+
+  async function handleDeleteList(id: number, name: string) {
+    if (!confirm(`Delete list "${name}"?`)) return;
+    await deleteGroup(id);
+    if (selectedGroup?.id === id) setSelectedGroup(null);
+    load();
+  }
+
+  async function handleSelectList(id: number) {
+    const detail = await getGroup(id);
+    setSelectedGroup(detail);
+  }
+
+  async function handleAddToList(contactId: number) {
+    if (!selectedGroup) return;
+    try {
+      await addGroupMember(selectedGroup.id, contactId);
+      const updated = await getGroup(selectedGroup.id);
+      setSelectedGroup(updated);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  }
+
+  async function handleRemoveFromList(contactId: number) {
+    if (!selectedGroup) return;
+    await removeGroupMember(selectedGroup.id, contactId);
+    const updated = await getGroup(selectedGroup.id);
+    setSelectedGroup(updated);
+  }
+
+  const listMemberIds = new Set(selectedGroup?.members.map((m) => m.contact_id) || []);
+  const availableContacts = contacts.filter((c) => !listMemberIds.has(c.id));
 
   return (
     <div className="page">
@@ -90,9 +107,6 @@ export default function Contacts() {
         >
           Share Invite Link
         </button>
-        <button onClick={() => setShowImport(!showImport)} className="btn btn-secondary">
-          {showImport ? "Cancel" : "Paste Contacts"}
-        </button>
       </div>
 
       {inviteLink && (
@@ -110,53 +124,147 @@ export default function Contacts() {
               Copy
             </button>
           </div>
-          <p className="empty">They'll tap it, find themselves in the APTA database, and enter their phone number.</p>
+          <p className="empty">They'll tap it, find themselves in the player database, and enter their phone number.</p>
         </div>
-      )}
-
-      {showImport && (
-        <form onSubmit={handleImport} className="import-form">
-          <p>Paste contacts — one per line, as <strong>Name, Phone</strong>:</p>
-          <textarea
-            rows={8}
-            placeholder={"Dave Chen, 312-555-1234\nMia Torres, 773-555-5678"}
-            value={importText}
-            onChange={(e) => setImportText(e.target.value)}
-          />
-          {importError && <p className="error">{importError}</p>}
-          <button type="submit" disabled={importing}>
-            {importing ? "Importing..." : "Import"}
-          </button>
-        </form>
       )}
 
       {loading && <p>Loading...</p>}
 
-      {!loading && contacts.length === 0 && (
-        <p className="empty">
-          No contacts yet. Import some to start inviting players.
-        </p>
-      )}
-
-      <div className="contact-list">
-        {contacts.map((c) => (
-          <div key={c.id} className="contact-row">
-            <div className="contact-info">
-              <strong>{c.user.name}</strong>
-              {c.user.pti && <span className="pti">PTI {c.user.pti}</span>}
-              {c.user.phone && (
-                <span className="phone">{c.user.phone}</span>
-              )}
-            </div>
+      {/* ── Lists Section ──────────────────────────── */}
+      {!loading && (
+        <>
+          <div className="section-header">
+            <h2>Lists</h2>
             <button
-              className="btn-small btn-danger"
-              onClick={() => handleDelete(c.id, c.user.name)}
+              className="btn-small"
+              onClick={() => setShowNewList(!showNewList)}
             >
-              Remove
+              {showNewList ? "Cancel" : "+ New List"}
             </button>
           </div>
-        ))}
-      </div>
+
+          {showNewList && (
+            <form onSubmit={handleCreateList} className="inline-form">
+              <input
+                type="text"
+                placeholder="List name (e.g. Tuesday Night Crew)"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                autoFocus
+              />
+              <button type="submit" className="btn-small">Create</button>
+            </form>
+          )}
+
+          {groups.length === 0 && !showNewList && (
+            <p className="empty">No lists yet. Create one to organize your contacts.</p>
+          )}
+
+          <div className="list-chips">
+            {groups.map((g) => (
+              <div key={g.id} className="list-chip-row">
+                <button
+                  className={`list-chip ${selectedGroup?.id === g.id ? "active" : ""}`}
+                  onClick={() => handleSelectList(g.id)}
+                >
+                  {g.name}
+                </button>
+                <button
+                  className="btn-small btn-danger"
+                  onClick={() => handleDeleteList(g.id, g.name)}
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Selected List Members ──────────────── */}
+          {selectedGroup && (
+            <div className="list-detail">
+              <div className="section-header">
+                <h3>{selectedGroup.name}</h3>
+                <button
+                  className="btn-small"
+                  onClick={() => setShowAddToList(!showAddToList)}
+                >
+                  {showAddToList ? "Done" : "+ Add"}
+                </button>
+              </div>
+
+              {selectedGroup.members.length === 0 && !showAddToList && (
+                <p className="empty">No members yet. Add contacts to this list.</p>
+              )}
+
+              {selectedGroup.members.map((m) => (
+                <div key={m.contact_id} className="contact-row">
+                  <div className="contact-info">
+                    <strong>{m.name}</strong>
+                    {m.pti && <span className="pti">PTI {m.pti}</span>}
+                  </div>
+                  <button
+                    className="btn-small btn-danger"
+                    onClick={() => handleRemoveFromList(m.contact_id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+
+              {showAddToList && (
+                <div className="add-to-list">
+                  <p className="empty">Tap a contact to add to "{selectedGroup.name}":</p>
+                  {availableContacts.map((c) => (
+                    <div key={c.id} className="contact-row add-row">
+                      <div className="contact-info">
+                        <strong>{c.user.name}</strong>
+                        {c.user.pti && <span className="pti">PTI {c.user.pti}</span>}
+                      </div>
+                      <button
+                        className="btn-small"
+                        onClick={() => handleAddToList(c.id)}
+                      >
+                        + Add
+                      </button>
+                    </div>
+                  ))}
+                  {availableContacts.length === 0 && (
+                    <p className="empty">All contacts are already in this list.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── All Contacts ──────────────────────── */}
+          <div className="section-header">
+            <h2>All Contacts</h2>
+            <span className="contact-count">{contacts.length}</span>
+          </div>
+
+          {contacts.length === 0 && (
+            <p className="empty">No contacts yet. Share an invite link to get started.</p>
+          )}
+
+          <div className="contact-list">
+            {contacts.map((c) => (
+              <div key={c.id} className="contact-row">
+                <div className="contact-info">
+                  <strong>{c.user.name}</strong>
+                  {c.user.pti && <span className="pti">PTI {c.user.pti}</span>}
+                  {c.user.phone && <span className="phone">{c.user.phone}</span>}
+                </div>
+                <button
+                  className="btn-small btn-danger"
+                  onClick={() => handleDeleteContact(c.id, c.user.name)}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
