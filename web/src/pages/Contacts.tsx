@@ -162,20 +162,13 @@ export default function Contacts() {
 
           <div className="list-chips">
             {groups.map((g) => (
-              <div key={g.id} className="list-chip-row">
-                <button
-                  className={`list-chip ${selectedGroup?.id === g.id ? "active" : ""}`}
-                  onClick={() => handleSelectList(g.id)}
-                >
-                  {g.name}
-                </button>
-                <button
-                  className="btn-small btn-danger"
-                  onClick={() => handleDeleteList(g.id, g.name)}
-                >
-                  &times;
-                </button>
-              </div>
+              <button
+                key={g.id}
+                className={`list-chip ${selectedGroup?.id === g.id ? "active" : ""}`}
+                onClick={() => handleSelectList(g.id)}
+              >
+                {g.name} &rsaquo;
+              </button>
             ))}
           </div>
 
@@ -184,12 +177,20 @@ export default function Contacts() {
             <div className="list-detail">
               <div className="section-header">
                 <h3>{selectedGroup.name}</h3>
-                <button
-                  className="btn-small"
-                  onClick={() => setShowAddToList(!showAddToList)}
-                >
-                  {showAddToList ? "Done" : "+ Add"}
-                </button>
+                <div className="list-detail-actions">
+                  <button
+                    className="btn-small"
+                    onClick={() => setShowAddToList(!showAddToList)}
+                  >
+                    {showAddToList ? "Done" : "+ Add"}
+                  </button>
+                  <button
+                    className="btn-small btn-danger"
+                    onClick={() => handleDeleteList(selectedGroup.id, selectedGroup.name)}
+                  >
+                    Delete List
+                  </button>
+                </div>
               </div>
 
               {selectedGroup.members.length === 0 && !showAddToList && (
