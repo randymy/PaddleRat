@@ -459,28 +459,18 @@ h2 {
   font-weight: 600;
 }
 
-.waterfall-arrows {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+.drag-handle {
+  cursor: grab;
+  font-size: 1.2em;
+  color: #aaa;
+  padding: 4px 8px;
+  touch-action: none;
+  user-select: none;
 }
 
-.waterfall-arrows button {
-  padding: 0 6px;
-  font-size: 0.65em;
-  background: none;
-  color: #888;
-  border: none;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.waterfall-arrows button:hover:not(:disabled) {
-  color: #333;
-}
-
-.waterfall-arrows button:disabled {
-  opacity: 0.2;
+.drag-handle:active {
+  cursor: grabbing;
+  color: #555;
 }
 
 /* Invite link box */

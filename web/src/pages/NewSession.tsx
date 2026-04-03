@@ -1,6 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   createSession,
   getContacts,
   getGroups,
@@ -70,13 +86,18 @@ export default function NewSession() {
     );
   }
 
-  function moveItem(idx: number, direction: "up" | "down") {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
     setInviteList((prev) => {
-      const next = [...prev];
-      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-      if (swapIdx < 0 || swapIdx >= next.length) return next;
-      [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
-      return next;
+      const oldIdx = prev.findIndex((item) => item.contactId === active.id);
+      const newIdx = prev.findIndex((item) => item.contactId === over.id);
+      return arrayMove(prev, oldIdx, newIdx);
     });
   }
 
@@ -255,39 +276,24 @@ export default function NewSession() {
             </div>
             <p className="empty" style={{ margin: "4px 0 8px" }}>
               First {slotsNeeded} get texted. Rest are next in line if someone declines.
-              Drag to reorder. Uncheck to skip.
+              Hold and drag to reorder. Uncheck to skip.
             </p>
-            <div className="waterfall-list">
-              {inviteList.map((item, idx) => (
-                <div
-                  key={item.contactId}
-                  className={`waterfall-item ${!item.enabled ? "disabled" : ""} ${idx < slotsNeeded && item.enabled ? "active-slot" : ""}`}
-                >
-                  <div className="waterfall-left">
-                    <input
-                      type="checkbox"
-                      checked={item.enabled}
-                      onChange={() => toggleItem(idx)}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={inviteList.map((i) => i.contactId)} strategy={verticalListSortingStrategy}>
+                <div className="waterfall-list">
+                  {inviteList.map((item, idx) => (
+                    <SortableInviteItem
+                      key={item.contactId}
+                      item={item}
+                      idx={idx}
+                      slotsNeeded={slotsNeeded}
+                      enabledBefore={inviteList.filter((it, i) => i <= idx && it.enabled).length}
+                      onToggle={() => toggleItem(idx)}
                     />
-                    <span className="waterfall-position">
-                      {item.enabled
-                        ? inviteList.filter((it, i) => i <= idx && it.enabled).length
-                        : "–"}
-                    </span>
-                    <strong>{item.name}</strong>
-                    {item.pti && <span className="pti">PTI {item.pti}</span>}
-                  </div>
-                  <div className="waterfall-arrows">
-                    <button type="button" onClick={() => moveItem(idx, "up")} disabled={idx === 0}>
-                      &#9650;
-                    </button>
-                    <button type="button" onClick={() => moveItem(idx, "down")} disabled={idx === inviteList.length - 1}>
-                      &#9660;
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           </div>
         )}
 
@@ -326,6 +332,51 @@ export default function NewSession() {
           {loading ? "Sending Invites..." : "Create Session & Send Invites"}
         </button>
       </form>
+    </div>
+  );
+}
+
+interface SortableInviteItemProps {
+  item: InviteItem;
+  idx: number;
+  slotsNeeded: number;
+  enabledBefore: number;
+  onToggle: () => void;
+}
+
+function SortableInviteItem({ item, idx, slotsNeeded, enabledBefore, onToggle }: SortableInviteItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.contactId,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`waterfall-item ${!item.enabled ? "disabled" : ""} ${idx < slotsNeeded && item.enabled ? "active-slot" : ""}`}
+    >
+      <div className="waterfall-left">
+        <input
+          type="checkbox"
+          checked={item.enabled}
+          onChange={onToggle}
+        />
+        <span className="waterfall-position">
+          {item.enabled ? enabledBefore : "–"}
+        </span>
+        <strong>{item.name}</strong>
+        {item.pti && <span className="pti">PTI {item.pti}</span>}
+      </div>
+      <div className="drag-handle" {...attributes} {...listeners}>
+        &#9776;
+      </div>
     </div>
   );
 }
