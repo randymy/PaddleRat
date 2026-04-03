@@ -338,20 +338,21 @@ h2 {
 
 .list-chip {
   padding: 10px 18px;
-  background: white;
-  border: 2px solid #ddd;
+  background: #2196F3;
+  border: 2px solid #2196F3;
   border-radius: 10px;
   cursor: pointer;
   font-size: 0.95em;
   font-weight: 500;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   transition: all 0.15s;
 }
 
 .list-chip:hover {
-  border-color: #FF6B00;
-  color: #FF6B00;
+  background: #1976D2;
+  border-color: #1976D2;
+  color: white;
 }
 
 .list-chip.active {
