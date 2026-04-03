@@ -90,8 +90,9 @@ class InvitationOut(BaseModel):
     user_id: int
     user: UserOut
     tier: int
+    position: int
     status: str
-    invited_at: datetime
+    invited_at: datetime | None
     responded_at: datetime | None
     expires_at: datetime
 

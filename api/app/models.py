@@ -111,6 +111,7 @@ class Invitation(Base):
     session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     tier: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     invited_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     responded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

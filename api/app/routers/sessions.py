@@ -34,13 +34,10 @@ async def create_session(
     db.add(session)
     await db.flush()
 
-    # Create tier-1 invitations
-    if body.invite_user_ids:
-        await inv_service.create_invitations(db, session, body.invite_user_ids, tier=1)
-
-    # Create tier-2 (backup) invitations
-    if body.backup_user_ids:
-        await inv_service.create_invitations(db, session, body.backup_user_ids, tier=2)
+    # Create invitations in waterfall order
+    all_user_ids = body.invite_user_ids + body.backup_user_ids
+    if all_user_ids:
+        await inv_service.create_invitations_waterfall(db, session, all_user_ids)
 
     await db.commit()
 
