@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { login as apiLogin, verify as apiVerify } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -8,17 +8,30 @@ export default function Login() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
   const [params] = useSearchParams();
+  const verified = useRef(false);
 
-  // If we have a token in the URL, verify it
+  // If we have a token in the URL, verify it (once)
   const urlToken = params.get("token");
-  if (urlToken) {
-    apiVerify(urlToken).then(({ token, user }) => {
-      login(token, user);
-      navigate("/dashboard");
-    }).catch(() => setError("Invalid or expired link"));
+
+  useEffect(() => {
+    if (!urlToken || verified.current) return;
+    verified.current = true;
+    setVerifying(true);
+    apiVerify(urlToken)
+      .then(({ token, user }) => {
+        login(token, user);
+        window.location.href = "/dashboard";
+      })
+      .catch(() => {
+        setError("Invalid or expired link");
+        setVerifying(false);
+      });
+  }, [urlToken]);
+
+  if (verifying) {
     return <div className="page"><p>Verifying...</p></div>;
   }
 
