@@ -10,9 +10,12 @@ import {
   deleteGroup,
   addGroupMember,
   removeGroupMember,
+  getDirectory,
+  addFromDirectory,
   type Contact,
   type Group,
   type GroupDetail,
+  type DirectoryPlayer,
 } from "../lib/api";
 
 export default function Contacts() {
@@ -24,6 +27,10 @@ export default function Contacts() {
   const [showNewList, setShowNewList] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [showAddToList, setShowAddToList] = useState(false);
+  const [showDirectory, setShowDirectory] = useState(false);
+  const [directoryPlayers, setDirectoryPlayers] = useState<DirectoryPlayer[]>([]);
+  const [directorySearch, setDirectorySearch] = useState("");
+  const [directoryTotal, setDirectoryTotal] = useState(0);
 
   function load() {
     Promise.all([getContacts(), getGroups()])
@@ -264,6 +271,75 @@ export default function Contacts() {
               </div>
             ))}
           </div>
+
+          {/* ── Chicagoland Players Directory ───── */}
+          <div className="section-header">
+            <h2>Chicagoland Players</h2>
+            <button
+              className="btn-small"
+              onClick={async () => {
+                if (!showDirectory) {
+                  const res = await getDirectory("", 50, 0);
+                  setDirectoryPlayers(res.players);
+                  setDirectoryTotal(res.total);
+                }
+                setShowDirectory(!showDirectory);
+              }}
+            >
+              {showDirectory ? "Hide" : "Browse"}
+            </button>
+          </div>
+
+          {showDirectory && (
+            <div className="directory-section">
+              <p className="empty" style={{ margin: "0 0 10px" }}>
+                Players who opted in to be found by other Chicagoland players.
+              </p>
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={directorySearch}
+                onChange={async (e) => {
+                  setDirectorySearch(e.target.value);
+                  const res = await getDirectory(e.target.value, 50, 0);
+                  setDirectoryPlayers(res.players);
+                  setDirectoryTotal(res.total);
+                }}
+              />
+              {directoryPlayers.length === 0 && (
+                <p className="empty">No players found. As more people opt in, they'll appear here.</p>
+              )}
+              <div className="contact-list">
+                {directoryPlayers.map((p) => {
+                  const alreadyAdded = contacts.some((c) => c.user_id === p.id);
+                  return (
+                    <div key={p.id} className="contact-row">
+                      <div className="contact-info">
+                        <strong>{p.name}</strong>
+                        {p.pti && <span className="pti">PTI {p.pti}</span>}
+                      </div>
+                      {alreadyAdded ? (
+                        <span className="directory-added">Added</span>
+                      ) : (
+                        <button
+                          className="btn-small"
+                          onClick={async () => {
+                            await addFromDirectory(p.id);
+                            load();
+                          }}
+                        >
+                          + Add
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {directoryTotal > directoryPlayers.length && (
+                <p className="empty">{directoryTotal - directoryPlayers.length} more players...</p>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

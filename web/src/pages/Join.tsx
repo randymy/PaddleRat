@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getInviteInfo, searchPlayers, joinViaLink } from "../lib/api";
+import { getInviteInfo, searchPlayers, joinViaLink, setPhonePublic } from "../lib/api";
 
 interface PlayerMatch {
   id: number;
@@ -20,6 +20,8 @@ export default function Join() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState<{ name: string; pti: number | null; message: string } | null>(null);
+  const [optedIn, setOptedIn] = useState(false);
+  const [joinedUserId, setJoinedUserId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!code) return;
@@ -47,6 +49,7 @@ export default function Join() {
     try {
       const res = await joinViaLink(code, selected.id, phone);
       setDone(res);
+      setJoinedUserId(selected.id);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -75,6 +78,28 @@ export default function Join() {
             When {ratkingName} books a court, you'll get a text.
             Just reply <strong>Y</strong> to join or <strong>N</strong> to pass.
           </p>
+
+          <div className="join-optin">
+            {!optedIn ? (
+              <>
+                <p>Want other Chicagoland players to be able to invite you to matches without entering your number each time?</p>
+                <button
+                  className="btn"
+                  onClick={async () => {
+                    if (joinedUserId) {
+                      await setPhonePublic(joinedUserId, true);
+                      setOptedIn(true);
+                    }
+                  }}
+                >
+                  Share My Info with the Community
+                </button>
+                <p className="join-optin-note">Your name and PTI will be visible. You can opt out anytime.</p>
+              </>
+            ) : (
+              <p className="join-optin-confirmed">You're in the Chicagoland directory! Other players can now invite you.</p>
+            )}
+          </div>
 
           <div className="join-cta">
             <p>Want to organize your own sessions?</p>

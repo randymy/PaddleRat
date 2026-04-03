@@ -157,7 +157,35 @@ export async function joinViaLink(code: string, userId: number, phone: string) {
   }>;
 }
 
+export async function setPhonePublic(userId: number, phonePublic: boolean) {
+  const res = await fetch(`${API_URL}/invite/opt-in`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, phone_public: phonePublic }),
+  });
+  return res.json();
+}
+
+// Directory
+export async function getDirectory(search: string = "", limit = 50, offset = 0) {
+  return request<{ players: DirectoryPlayer[]; total: number }>(
+    `/directory?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`
+  );
+}
+
+export async function addFromDirectory(userId: number) {
+  return request<{ status: string }>(`/directory/add/${userId}`, {
+    method: "POST",
+  });
+}
+
 // Types
+export interface DirectoryPlayer {
+  id: number;
+  name: string;
+  pti: number | null;
+}
+
 export interface User {
   id: number;
   name: string;

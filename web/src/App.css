@@ -546,6 +546,48 @@ h2 {
   font-size: 0.9em;
 }
 
+/* Opt-in */
+.join-optin {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f0f7ff;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.join-optin p {
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.join-optin-note {
+  font-size: 0.8em;
+  color: #999;
+}
+
+.join-optin-confirmed {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+/* Directory */
+.directory-section {
+  background: white;
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 8px;
+}
+
+.directory-section input {
+  margin-bottom: 10px;
+}
+
+.directory-added {
+  font-size: 0.85em;
+  color: #4CAF50;
+  font-weight: 500;
+}
+
 .join-privacy {
   margin-top: 24px;
   padding-top: 16px;

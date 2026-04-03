@@ -155,3 +155,22 @@ async def join_via_link(
         pti=player.pti,
         message=f"You're connected with {link.ratking.name}!",
     )
+
+
+class OptInRequest(BaseModel):
+    user_id: int
+    phone_public: bool
+
+
+@router.post("/opt-in")
+async def set_phone_public(
+    body: OptInRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Public endpoint: Rat opts in/out of the player directory."""
+    user = await db.get(User, body.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.phone_public = body.phone_public
+    await db.commit()
+    return {"status": "updated", "phone_public": user.phone_public}

@@ -28,6 +28,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="rat")
     pti: Mapped[float | None] = mapped_column(Float, nullable=True)
     invited_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    phone_public: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
