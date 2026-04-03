@@ -34,7 +34,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Only RatKings and admins can log in")
 
     token = create_magic_token(user.id, user.email)
-    link = f"{settings.app_url}/auth/verify?token={token}"
+    link = f"{settings.app_url}/login?token={token}"
 
     email_client.send(
         to_email=user.email,

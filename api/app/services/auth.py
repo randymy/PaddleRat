@@ -21,12 +21,17 @@ def create_magic_token(user_id: int, email: str) -> str:
 
 
 def verify_magic_token(token: str) -> dict | None:
-    """Verify and consume a magic link token. Returns user info or None."""
-    data = _pending_tokens.pop(token, None)
+    """Verify a magic link token. Token stays valid for 30s after first use."""
+    data = _pending_tokens.get(token)
     if not data:
         return None
     if datetime.now(timezone.utc) > data["expires_at"]:
+        _pending_tokens.pop(token, None)
         return None
+    # On first use, shorten expiry to 30s so the token can't be reused long-term
+    if "first_used" not in data:
+        data["first_used"] = True
+        data["expires_at"] = datetime.now(timezone.utc) + timedelta(seconds=30)
     return data
 
 
