@@ -24,7 +24,7 @@ class TokenResponse(BaseModel):
 @router.post("/login")
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Send a magic link to the user's email."""
-    result = await db.execute(select(User).where(User.email == body.email))
+    result = await db.execute(select(User).where(User.email.ilike(body.email)))
     user = result.scalar_one_or_none()
 
     if not user:
