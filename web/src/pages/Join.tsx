@@ -66,21 +66,30 @@ export default function Join() {
   if (done) {
     return (
       <div className="page join-page">
-        <h1>You're in!</h1>
-        <p className="join-name">{done.name}</p>
-        {done.pti && <p className="join-pti">PTI {done.pti}</p>}
-        <p>{done.message}</p>
-        <p className="join-note">
-          When {ratkingName} books a court, you'll get a text.
-          Just reply <strong>Y</strong> to join.
-        </p>
+        <div className="join-success">
+          <h1>You're in!</h1>
+          <p className="join-name">{done.name}</p>
+          {done.pti && <p className="join-pti">PTI {done.pti}</p>}
+          <p>{done.message}</p>
+          <p className="join-note">
+            When {ratkingName} books a court, you'll get a text.
+            Just reply <strong>Y</strong> to join or <strong>N</strong> to pass.
+          </p>
+
+          <div className="join-cta">
+            <p>Want to organize your own sessions?</p>
+            <a href="/#signup" className="btn">Become a RatKing</a>
+          </div>
+
+          <a href="/" className="join-home-link">Learn more about PaddleRat</a>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="page join-page">
-      <h1>{ratkingName} invited you to PaddleRats</h1>
+      <h1>{ratkingName} invited you to PaddleRat</h1>
       <p>Find yourself and enter your phone number to connect.</p>
 
       <form onSubmit={handleJoin}>
@@ -165,6 +174,11 @@ export default function Join() {
           </>
         )}
       </form>
+
+      <p className="join-privacy">
+        {ratkingName} needs your phone number to invite you to play paddle.
+        It will only be used for session invites. You can opt out at any time by replying STOP.
+      </p>
     </div>
   );
 }
