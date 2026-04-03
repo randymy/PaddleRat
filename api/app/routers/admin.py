@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,3 +69,27 @@ async def update_role(
     await db.commit()
     await db.refresh(target)
     return target
+
+
+class BulkPlayer(BaseModel):
+    name: str
+    pti: float | None = None
+
+
+@router.post("/seed-players")
+async def seed_players(
+    players: list[BulkPlayer],
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin: bulk import players from scraper data."""
+    _require_admin(user)
+    added = 0
+    for p in players:
+        result = await db.execute(select(User).where(User.name == p.name))
+        if result.scalar_one_or_none():
+            continue
+        db.add(User(name=p.name, pti=p.pti, role="rat"))
+        added += 1
+    await db.commit()
+    return {"added": added, "skipped": len(players) - added}
