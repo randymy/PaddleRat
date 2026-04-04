@@ -661,9 +661,22 @@ h2 {
   margin: 0 auto;
 }
 
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .landing-logo-img {
-  height: 48px;
+  height: 64px;
   width: auto;
+}
+
+.landing-brand-name {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.02em;
 }
 
 .landing-login {
@@ -889,7 +902,11 @@ h2 {
   }
 
   .landing-logo-img {
-    height: 40px;
+    height: 48px;
+  }
+
+  .landing-brand-name {
+    font-size: 1.2em;
   }
 }
 

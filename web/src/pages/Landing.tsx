@@ -36,7 +36,10 @@ export default function Landing() {
   return (
     <div className="landing">
       <nav className="landing-nav">
-        <img src={logo} alt="PaddleRat" className="landing-logo-img" />
+        <div className="landing-brand">
+          <img src={logo} alt="PaddleRat" className="landing-logo-img" />
+          <span className="landing-brand-name">PaddleRat</span>
+        </div>
         <Link to="/login" className="landing-login">Log In</Link>
       </nav>
 
