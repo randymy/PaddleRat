@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import ratkingImg from "../assets/ratking.png";
+import logo from "../assets/logo.png";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -36,41 +36,70 @@ export default function Landing() {
   return (
     <div className="landing">
       <nav className="landing-nav">
-        <span className="landing-logo">PaddleRat</span>
+        <img src={logo} alt="PaddleRat" className="landing-logo-img" />
         <Link to="/login" className="landing-login">Log In</Link>
       </nav>
 
       <section className="hero-section">
-        <img src={ratkingImg} alt="The Rat King and his Paddle Rats" className="hero-image" />
         <h1 className="hero-title">
-          Court booked.<br />
-          Need 3 more players.<br />
-          <span className="hero-accent">Now.</span>
+          Stop the back and forth.<br />
+          <span className="hero-accent">Fill your court in minutes.</span>
         </h1>
         <p className="hero-sub">
-          PaddleRat fills your platform tennis sessions in minutes.
-          Send a text, get a Y, hit the courts.
+          PaddleRat automates the hardest part of platform tennis &mdash;
+          finding players. Set your lineup, send one text, and let responses roll in.
         </p>
       </section>
 
-      <section className="how-section">
-        <div className="how-step">
-          <div className="step-number">1</div>
-          <h3>Share a link</h3>
-          <p>Drop your invite link in the group chat. Friends tap it and join your network in seconds.</p>
-        </div>
-        <div className="how-step">
-          <div className="step-number">2</div>
-          <h3>Create a session</h3>
-          <p>Pick a court, set the time, choose who to invite. One tap sends the texts.</p>
-        </div>
-        <div className="how-step">
-          <div className="step-number">3</div>
-          <h3>They reply Y</h3>
-          <p>First to respond get the spot. Everyone gets a confirmation with a calendar link. Done.</p>
+      {/* ── For Matchmakers ──────────────────── */}
+      <section className="process-section">
+        <h2 className="process-title">For Matchmakers</h2>
+        <p className="process-sub">You book the court. PaddleRat fills it.</p>
+
+        <div className="process-steps">
+          <div className="process-step">
+            <div className="process-icon">1</div>
+            <h3>Add your contacts</h3>
+            <p>Share a link with your paddle crew. They tap it, confirm their identity, and they're in your network.</p>
+          </div>
+          <div className="process-step">
+            <div className="process-icon">2</div>
+            <h3>Prioritize your players</h3>
+            <p>Create lists and set the order. Drag to rank who gets invited first. Uncheck anyone sitting this one out.</p>
+          </div>
+          <div className="process-step">
+            <div className="process-icon">3</div>
+            <h3>Book the match</h3>
+            <p>Pick your court, set the time, hit send. PaddleRat texts your list in order until every spot is filled.</p>
+          </div>
         </div>
       </section>
 
+      {/* ── For Players ──────────────────────── */}
+      <section className="process-section process-players">
+        <h2 className="process-title">For Players</h2>
+        <p className="process-sub">No app. No account. Just a text.</p>
+
+        <div className="process-steps">
+          <div className="process-step">
+            <div className="process-icon">1</div>
+            <h3>Get a text</h3>
+            <p>"Randy wants to play paddle on Tuesday at 7pm at Wilmette, Court 3. Reply Y to join or N to decline."</p>
+          </div>
+          <div className="process-step">
+            <div className="process-icon">2</div>
+            <h3>Reply Y or N</h3>
+            <p>That's it. One letter. If you're in, you're booked. If not, the next player on the list gets your spot.</p>
+          </div>
+          <div className="process-step">
+            <div className="process-icon">3</div>
+            <h3>Get a confirmation</h3>
+            <p>When the match fills, everyone gets a confirmation with the lineup, PTI ratings, and a calendar link.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ──────────────────────────────── */}
       <section className="cta-section" id="signup">
         {submitted ? (
           <div className="cta-success">
@@ -79,10 +108,10 @@ export default function Landing() {
           </div>
         ) : (
           <>
-            <h2>Become a RatKing</h2>
+            <h2>Become a Matchmaker</h2>
             <p className="cta-sub">
-              We're letting in a handful of organizers to start.
-              Sign up and we'll send you a login link when it's your turn.
+              We're opening up to a small group of organizers.
+              Sign up and we'll send you access when it's your turn.
             </p>
             <form onSubmit={handleSubmit} className="cta-form">
               <input
@@ -108,23 +137,9 @@ export default function Landing() {
         )}
       </section>
 
-      <section className="features-section">
-        <div className="feature">
-          <h3>No app install</h3>
-          <p>Your friends just reply to a text. No downloads, no accounts, no friction.</p>
-        </div>
-        <div className="feature">
-          <h3>PTI built in</h3>
-          <p>Every player's rating is right there. Build balanced matches effortlessly.</p>
-        </div>
-        <div className="feature">
-          <h3>Calendar links</h3>
-          <p>Session fills up? Everyone gets a confirmation with a one-tap calendar add.</p>
-        </div>
-      </section>
-
       <footer className="landing-footer">
-        <p>PaddleRat &mdash; Platform tennis, coordinated.</p>
+        <img src={logo} alt="PaddleRat" className="footer-logo" />
+        <p>Platform tennis, coordinated.</p>
       </footer>
     </div>
   );

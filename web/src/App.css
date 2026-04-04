@@ -649,6 +649,7 @@ h2 {
   max-width: 100%;
   overflow-x: hidden;
   color: #1a1a1a;
+  background: #fafafa;
 }
 
 .landing-nav {
@@ -660,16 +661,17 @@ h2 {
   margin: 0 auto;
 }
 
-.landing-logo {
-  font-size: 1.4em;
-  font-weight: 700;
-  color: #1a1a1a;
+.landing-logo-img {
+  height: 48px;
+  width: auto;
 }
 
 .landing-login {
-  color: #666;
+  color: #888;
   text-decoration: none;
   font-weight: 500;
+  font-size: 0.95em;
+  letter-spacing: 0.02em;
 }
 
 .landing-login:hover {
@@ -679,74 +681,96 @@ h2 {
 /* Hero */
 .hero-section {
   text-align: center;
-  padding: 40px 20px 60px;
-  max-width: 700px;
+  padding: 60px 20px 50px;
+  max-width: 680px;
   margin: 0 auto;
-}
-
-.hero-image {
-  width: 100%;
-  max-width: 600px;
-  border-radius: 16px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .hero-title {
-  font-size: 3em;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-size: 2.6em;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #1a1a1a;
 }
 
 .hero-accent {
-  color: #FF6B00;
+  color: #8B6914;
 }
 
 .hero-sub {
-  font-size: 1.25em;
-  color: #555;
-  margin-top: 24px;
-  line-height: 1.6;
+  font-size: 1.15em;
+  color: #666;
+  margin-top: 20px;
+  line-height: 1.7;
 }
 
-/* How it works */
-.how-section {
-  display: flex;
-  gap: 30px;
+/* Process sections */
+.process-section {
   max-width: 800px;
   margin: 0 auto;
-  padding: 40px 20px 60px;
+  padding: 50px 20px;
 }
 
-.how-step {
+.process-players {
+  background: white;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  max-width: 100%;
+  padding-left: calc((100% - 800px) / 2 + 20px);
+  padding-right: calc((100% - 800px) / 2 + 20px);
+}
+
+.process-title {
+  font-size: 1.1em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #999;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.process-sub {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 30px;
+}
+
+.process-steps {
+  display: flex;
+  gap: 40px;
+}
+
+.process-step {
   flex: 1;
-  text-align: center;
 }
 
-.step-number {
-  width: 48px;
-  height: 48px;
-  background: #FF6B00;
-  color: white;
+.process-icon {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #ccc;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3em;
-  font-weight: 700;
-  margin: 0 auto 14px;
-}
-
-.how-step h3 {
-  font-size: 1.1em;
-  margin-bottom: 8px;
-}
-
-.how-step p {
   font-size: 0.95em;
-  color: #666;
-  line-height: 1.5;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.process-step h3 {
+  font-size: 1.05em;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #1a1a1a;
+}
+
+.process-step p {
+  font-size: 0.9em;
+  color: #777;
+  line-height: 1.6;
 }
 
 /* CTA */
@@ -758,60 +782,62 @@ h2 {
 }
 
 .cta-section h2 {
-  font-size: 2em;
-  margin-bottom: 10px;
+  font-size: 1.8em;
+  font-weight: 700;
+  margin-bottom: 8px;
   color: white;
 }
 
 .cta-sub {
-  color: #aaa;
-  margin-bottom: 30px;
-  font-size: 1.05em;
+  color: #999;
+  margin-bottom: 28px;
+  font-size: 1em;
 }
 
 .cta-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-width: 380px;
+  gap: 10px;
+  max-width: 360px;
   margin: 0 auto;
 }
 
 .cta-form input {
-  padding: 14px;
+  padding: 13px 16px;
   border: 1px solid #444;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #2a2a2a;
   color: white;
-  font-size: 1em;
+  font-size: 0.95em;
 }
 
 .cta-form input::placeholder {
-  color: #888;
+  color: #666;
 }
 
 .cta-form input:focus {
   outline: none;
-  border-color: #FF6B00;
+  border-color: #8B6914;
 }
 
 .cta-form button {
-  padding: 14px;
-  background: #FF6B00;
+  padding: 13px;
+  background: #8B6914;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1em;
+  border-radius: 6px;
+  font-size: 1em;
   font-weight: 600;
   cursor: pointer;
+  letter-spacing: 0.02em;
 }
 
 .cta-form button:hover {
-  background: #e55f00;
+  background: #7a5c12;
 }
 
 .cta-success h2 {
-  color: #4CAF50;
+  color: #8B6914;
 }
 
 .cta-success p {
@@ -819,48 +845,39 @@ h2 {
   margin-top: 10px;
 }
 
-/* Features */
-.features-section {
-  display: flex;
-  gap: 30px;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 60px 20px;
-}
-
-.feature {
-  flex: 1;
-  text-align: center;
-}
-
-.feature h3 {
-  font-size: 1.1em;
-  margin-bottom: 8px;
-}
-
-.feature p {
-  font-size: 0.95em;
-  color: #666;
-  line-height: 1.5;
-}
-
 /* Footer */
 .landing-footer {
   text-align: center;
-  padding: 30px;
-  color: #999;
-  font-size: 0.9em;
+  padding: 40px 20px;
+  color: #bbb;
+  font-size: 0.85em;
+}
+
+.footer-logo {
+  height: 40px;
+  width: auto;
+  margin-bottom: 8px;
+  opacity: 0.4;
+}
+
+.landing-footer p {
+  margin: 0;
 }
 
 /* Mobile */
 @media (max-width: 600px) {
   .hero-title {
-    font-size: 2em;
+    font-size: 1.8em;
   }
 
-  .how-section,
-  .features-section {
+  .process-steps {
     flex-direction: column;
+    gap: 24px;
+  }
+
+  .process-players {
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .landing-nav {
@@ -868,7 +885,11 @@ h2 {
   }
 
   .hero-section {
-    padding: 50px 20px 40px;
+    padding: 40px 20px 30px;
+  }
+
+  .landing-logo-img {
+    height: 40px;
   }
 }
 
