@@ -103,7 +103,7 @@ export default function Join() {
 
           <div className="join-cta">
             <p>Want to organize your own sessions?</p>
-            <a href="/#signup" className="btn">Become a RatKing</a>
+            <a href="/#signup" className="btn">Become a Matchmaker</a>
           </div>
 
           <a href="/" className="join-home-link">Learn more about PaddleRat</a>

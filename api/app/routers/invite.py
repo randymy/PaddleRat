@@ -47,7 +47,7 @@ async def create_invite_link(
 ):
     """RatKing generates a shareable invite link."""
     if user.role not in ("ratking", "admin"):
-        raise HTTPException(status_code=403, detail="Only RatKings can create invite links")
+        raise HTTPException(status_code=403, detail="Only matchmakers can create invite links")
 
     code = secrets.token_urlsafe(8)
     link = InviteLink(code=code, ratking_id=user.id)

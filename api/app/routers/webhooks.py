@@ -30,7 +30,7 @@ async def sms_inbound(
 
     if not user:
         # Unknown number — can't match to a user
-        sms_client.send(phone, "Sorry, we don't recognize this number. Ask your RatKing to add you!")
+        sms_client.send(phone, "Sorry, we don't recognize this number. Ask the person who invited you to add you on PaddleRat.")
         return {"status": "unknown_user"}
 
     # Parse response

@@ -31,7 +31,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No account found with that email")
 
     if user.role not in ("ratking", "admin"):
-        raise HTTPException(status_code=403, detail="Only RatKings and admins can log in")
+        raise HTTPException(status_code=403, detail="Only matchmakers and admins can log in")
 
     token = await create_magic_token(db, user.id)
     await db.commit()

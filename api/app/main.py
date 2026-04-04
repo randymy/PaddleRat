@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="RatKings API",
+    title="PaddleRat API",
     description="Platform tennis coordination",
     version="0.1.0",
     lifespan=lifespan,

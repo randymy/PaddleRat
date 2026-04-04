@@ -20,7 +20,7 @@ async def create_session(
     db: AsyncSession = Depends(get_db),
 ):
     if user.role not in ("ratking", "admin"):
-        raise HTTPException(status_code=403, detail="Only RatKings can create sessions")
+        raise HTTPException(status_code=403, detail="Only matchmakers can create sessions")
 
     session = Session(
         ratking_id=user.id,

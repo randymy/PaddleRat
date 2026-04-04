@@ -125,7 +125,7 @@ async def approve_waitlist(
     email_client.send(
         to_email=entry.email,
         subject="Welcome to PaddleRat — You're In!",
-        body=f"You've been approved as a RatKing!\n\nClick to log in: {link}",
+        body=f"You've been approved as a Matchmaker on PaddleRat!\n\nClick to log in: {link}",
     )
 
     await db.commit()
