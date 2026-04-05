@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.config import settings
 from app.dependencies import get_current_user, get_db
 from app.models import Contact, InviteLink, User
 from app.utils import normalize_phone
@@ -38,6 +39,8 @@ class JoinResponse(BaseModel):
     name: str
     pti: float | None
     message: str
+    user_id: int
+    optin_token: str
 
 
 @router.post("/link", response_model=InviteLinkResponse)
@@ -122,6 +125,13 @@ async def join_via_link(
             detail="This phone number is already registered to a different player"
         )
 
+    # Prevent claiming a player who already has a different phone
+    if player.phone and player.phone != phone:
+        raise HTTPException(
+            status_code=400,
+            detail="This player is already registered with a different phone number"
+        )
+
     # Link phone to the player record
     if not player.phone:
         player.phone = phone
@@ -154,12 +164,23 @@ async def join_via_link(
         name=player.name,
         pti=player.pti,
         message=f"You're connected with {link.ratking.name}!",
+        user_id=player.id,
+        optin_token=_make_optin_token(player.id, player.phone),
     )
 
+
+import hashlib
 
 class OptInRequest(BaseModel):
     user_id: int
     phone_public: bool
+    token: str
+
+
+def _make_optin_token(user_id: int, phone: str) -> str:
+    """Create a simple HMAC token so only the person who just joined can opt in."""
+    raw = f"{user_id}:{phone}:{settings.jwt_secret}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:24]
 
 
 @router.post("/opt-in")
@@ -167,10 +188,15 @@ async def set_phone_public(
     body: OptInRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Public endpoint: Rat opts in/out of the player directory."""
+    """Opt in/out of the player directory. Requires a token from the join flow."""
     user = await db.get(User, body.user_id)
-    if not user:
+    if not user or not user.phone:
         raise HTTPException(status_code=404, detail="User not found")
+
+    expected = _make_optin_token(user.id, user.phone)
+    if body.token != expected:
+        raise HTTPException(status_code=403, detail="Invalid token")
+
     user.phone_public = body.phone_public
     await db.commit()
     return {"status": "updated", "phone_public": user.phone_public}

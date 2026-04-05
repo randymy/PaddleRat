@@ -67,6 +67,8 @@ async def get_session(
     session = await _load_session(db, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.ratking_id != user.id and user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not your session")
     return session
 
 

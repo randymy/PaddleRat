@@ -19,9 +19,8 @@ export default function Join() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState<{ name: string; pti: number | null; message: string } | null>(null);
+  const [done, setDone] = useState<{ name: string; pti: number | null; message: string; user_id: number; optin_token: string } | null>(null);
   const [optedIn, setOptedIn] = useState(false);
-  const [joinedUserId, setJoinedUserId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!code) return;
@@ -49,7 +48,6 @@ export default function Join() {
     try {
       const res = await joinViaLink(code, selected.id, phone);
       setDone(res);
-      setJoinedUserId(selected.id);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -86,8 +84,8 @@ export default function Join() {
                 <button
                   className="btn"
                   onClick={async () => {
-                    if (joinedUserId) {
-                      await setPhonePublic(joinedUserId, true);
+                    if (done) {
+                      await setPhonePublic(done.user_id, true, done.optin_token);
                       setOptedIn(true);
                     }
                   }}

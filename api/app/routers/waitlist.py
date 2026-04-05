@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +14,7 @@ from app.services.email import email_client
 from app.config import settings
 
 router = APIRouter(tags=["waitlist"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 class WaitlistRequest(BaseModel):
@@ -35,7 +38,9 @@ class WaitlistEntry(BaseModel):
 
 
 @router.post("/waitlist", response_model=WaitlistResponse)
+@limiter.limit("5/minute")
 async def join_waitlist(
+    request: Request,
     body: WaitlistRequest,
     db: AsyncSession = Depends(get_db),
 ):

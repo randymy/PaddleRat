@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +12,7 @@ from app.services.auth import create_jwt, create_magic_token, verify_magic_token
 from app.services.email import email_client
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 class LoginRequest(BaseModel):
@@ -22,7 +25,8 @@ class TokenResponse(BaseModel):
 
 
 @router.post("/login")
-async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(request: Request, body: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Send a magic link to the user's email."""
     result = await db.execute(select(User).where(User.email.ilike(body.email)))
     user = result.scalar_one_or_none()

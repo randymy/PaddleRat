@@ -5,7 +5,17 @@ from pydantic import BaseModel
 
 # ── Users ────────────────────────────────────────────────────────────────
 
+class UserPublic(BaseModel):
+    """Safe to show to other users — no phone or email."""
+    id: int
+    name: str
+    pti: float | None
+
+    model_config = {"from_attributes": True}
+
+
 class UserOut(BaseModel):
+    """Full user info — only for the user viewing their own data or admin."""
     id: int
     name: str
     phone: str | None
@@ -88,7 +98,7 @@ class GroupMemberAdd(BaseModel):
 class InvitationOut(BaseModel):
     id: int
     user_id: int
-    user: UserOut
+    user: UserPublic
     tier: int
     position: int
     status: str

@@ -154,14 +154,16 @@ export async function joinViaLink(code: string, userId: number, phone: string) {
     name: string;
     pti: number | null;
     message: string;
+    user_id: number;
+    optin_token: string;
   }>;
 }
 
-export async function setPhonePublic(userId: number, phonePublic: boolean) {
+export async function setPhonePublic(userId: number, phonePublic: boolean, token: string) {
   const res = await fetch(`${API_URL}/invite/opt-in`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId, phone_public: phonePublic }),
+    body: JSON.stringify({ user_id: userId, phone_public: phonePublic, token }),
   });
   return res.json();
 }
