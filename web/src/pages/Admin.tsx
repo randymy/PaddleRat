@@ -15,6 +15,7 @@ interface WaitlistEntry {
 export default function Admin() {
   const { user, token } = useAuth();
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
+  const [userRoles, setUserRoles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   async function load() {
@@ -22,7 +23,22 @@ export default function Admin() {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
-      setEntries(await res.json());
+      const data = await res.json();
+      setEntries(data);
+
+      // Fetch roles for approved entries
+      const approved = data.filter((e: WaitlistEntry) => e.status === "approved");
+      const roles: Record<string, string> = {};
+      for (const entry of approved) {
+        const userRes = await fetch(`${API_URL}/admin/users?search=${encodeURIComponent(entry.email)}&limit=1`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (userRes.ok) {
+          const users = await userRes.json();
+          if (users.length > 0) roles[entry.email] = users[0].role;
+        }
+      }
+      setUserRoles(roles);
     }
     setLoading(false);
   }
@@ -39,6 +55,20 @@ export default function Admin() {
     } else {
       const err = await res.json();
       alert(err.detail || "Failed to approve");
+    }
+  }
+
+  async function handleDeny(id: number, name: string) {
+    if (!confirm(`Deny ${name}'s request?`)) return;
+    const res = await fetch(`${API_URL}/admin/waitlist/${id}/deny`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      load();
+    } else {
+      const err = await res.json();
+      alert(err.detail || "Failed to deny");
     }
   }
 
@@ -80,17 +110,25 @@ export default function Admin() {
                 {new Date(e.created_at).toLocaleDateString()}
               </span>
             </div>
-            <button
-              className="btn-small"
-              onClick={() => handleApprove(e.id)}
-            >
-              Approve
-            </button>
+            <div className="contact-actions">
+              <button
+                className="btn-small"
+                onClick={() => handleApprove(e.id)}
+              >
+                Approve
+              </button>
+              <button
+                className="btn-small btn-danger"
+                onClick={() => handleDeny(e.id, e.name)}
+              >
+                Deny
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      <h2>Approved ({approved.length})</h2>
+      <h2>Approved Matchmakers ({approved.length})</h2>
 
       <div className="contact-list">
         {approved.map((e) => (
@@ -99,7 +137,12 @@ export default function Admin() {
               <strong>{e.name}</strong>
               <span className="phone">{e.email}</span>
             </div>
-            <span className="directory-added">Approved</span>
+            <div className="contact-actions">
+              <span className="directory-added">Approved</span>
+              {userRoles[e.email] === "admin" && (
+                <span className="status-badge" style={{ background: "#9C27B0" }}>Admin</span>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -138,7 +181,7 @@ function UserManager({ token }: { token: string }) {
 
   return (
     <>
-      <h2>Manage Users</h2>
+      <h2>Manage Database</h2>
       <div className="inline-form">
         <input
           type="text"

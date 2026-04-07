@@ -135,3 +135,24 @@ async def approve_waitlist(
 
     await db.commit()
     return entry
+
+
+@router.post("/admin/waitlist/{entry_id}/deny", response_model=WaitlistEntry)
+async def deny_waitlist(
+    entry_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin: deny a waitlist entry."""
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    entry = await db.get(Waitlist, entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    if entry.status != "pending":
+        raise HTTPException(status_code=400, detail=f"Entry is already {entry.status}")
+
+    entry.status = "denied"
+    await db.commit()
+    return entry
