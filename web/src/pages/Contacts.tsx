@@ -145,7 +145,7 @@ export default function Contacts() {
             onSubmit={async (e) => {
               e.preventDefault();
               setAddPlayerError("");
-              if (!newPlayerName.trim()) return;
+              if (!newPlayerName.trim() || !newPlayerPhone.trim()) return;
               try {
                 await createPlayer(
                   newPlayerName.trim(),
@@ -172,9 +172,10 @@ export default function Contacts() {
             />
             <input
               type="tel"
-              placeholder="Phone (optional)"
+              placeholder="Phone number"
               value={newPlayerPhone}
               onChange={(e) => setNewPlayerPhone(e.target.value)}
+              required
             />
             <input
               type="number"
