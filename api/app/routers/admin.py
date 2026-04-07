@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
-from app.models import PlayerTeam, Series, Team, User
+from app.models import Contact, GroupMember, Invitation, InviteLink, MagicToken, PlayerTeam, Series, Session, Team, User
 from app.schemas import UserCreate, UserOut, UserRoleUpdate
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -69,6 +69,65 @@ async def update_role(
     await db.commit()
     await db.refresh(target)
     return target
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin: delete a user and all their references."""
+    _require_admin(user)
+    target = await db.get(User, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    if target.role == "admin":
+        raise HTTPException(status_code=400, detail="Cannot delete an admin user")
+
+    # Clear all foreign key references
+    await db.execute(select(GroupMember).where(
+        GroupMember.contact_id.in_(select(Contact.id).where(Contact.user_id == user_id))
+    ))
+    # Delete in order of dependencies
+    for model, col in [
+        (InviteLink, InviteLink.ratking_id),
+        (MagicToken, MagicToken.user_id),
+        (Invitation, Invitation.user_id),
+        (GroupMember, GroupMember.contact_id),
+    ]:
+        if model == GroupMember:
+            # Delete group members via contacts
+            contact_ids = (await db.execute(
+                select(Contact.id).where((Contact.user_id == user_id) | (Contact.owner_id == user_id))
+            )).scalars().all()
+            if contact_ids:
+                await db.execute(select(GroupMember).where(GroupMember.contact_id.in_(contact_ids)))
+                for gm in (await db.execute(select(GroupMember).where(GroupMember.contact_id.in_(contact_ids)))).scalars().all():
+                    await db.delete(gm)
+        else:
+            for row in (await db.execute(select(model).where(col == user_id))).scalars().all():
+                await db.delete(row)
+
+    # Delete contacts (as owner or as target)
+    for c in (await db.execute(select(Contact).where((Contact.user_id == user_id) | (Contact.owner_id == user_id)))).scalars().all():
+        await db.delete(c)
+
+    # Delete player_teams
+    for pt in (await db.execute(select(PlayerTeam).where(PlayerTeam.player_id == user_id))).scalars().all():
+        await db.delete(pt)
+
+    # Delete sessions they created
+    for s in (await db.execute(select(Session).where(Session.ratking_id == user_id))).scalars().all():
+        # Delete invitations for those sessions
+        for inv in (await db.execute(select(Invitation).where(Invitation.session_id == s.id))).scalars().all():
+            await db.delete(inv)
+        await db.delete(s)
+
+    # Finally delete the user
+    await db.delete(target)
+    await db.commit()
+    return {"status": "deleted", "name": target.name, "id": user_id}
 
 
 class BulkPlayer(BaseModel):
