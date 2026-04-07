@@ -86,6 +86,13 @@ export async function deleteContact(id: number) {
   return request<void>(`/contacts/${id}`, { method: "DELETE" });
 }
 
+export async function createPlayer(name: string, phone?: string, pti?: number) {
+  return request<Contact>("/contacts/create-player", {
+    method: "POST",
+    body: JSON.stringify({ name, phone: phone || null, pti: pti || null }),
+  });
+}
+
 // Groups
 export async function getGroups() {
   return request<Group[]>("/groups");

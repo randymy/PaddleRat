@@ -15,6 +15,7 @@ import {
   getSeries,
   getTeams,
   getTeamPlayers,
+  createPlayer,
   type Contact,
   type Group,
   type GroupDetail,
@@ -42,6 +43,11 @@ export default function Contacts() {
   const [selectedSeries, setSelectedSeries] = useState<SeriesInfo | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<TeamInfo | null>(null);
   const [phoneInput, setPhoneInput] = useState<{ userId: number; value: string } | null>(null);
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [newPlayerName, setNewPlayerName] = useState("");
+  const [newPlayerPhone, setNewPlayerPhone] = useState("");
+  const [newPlayerPti, setNewPlayerPti] = useState("");
+  const [addPlayerError, setAddPlayerError] = useState("");
 
   function load() {
     Promise.all([getContacts(), getGroups()])
@@ -125,7 +131,63 @@ export default function Contacts() {
         >
           Share Invite Link
         </button>
+        <button
+          onClick={() => setShowAddPlayer(!showAddPlayer)}
+          className="btn btn-secondary"
+        >
+          {showAddPlayer ? "Cancel" : "+ Add Player"}
+        </button>
       </div>
+
+      {showAddPlayer && (
+        <div className="add-player-form">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setAddPlayerError("");
+              if (!newPlayerName.trim()) return;
+              try {
+                await createPlayer(
+                  newPlayerName.trim(),
+                  newPlayerPhone.trim() || undefined,
+                  newPlayerPti ? parseFloat(newPlayerPti) : undefined,
+                );
+                setNewPlayerName("");
+                setNewPlayerPhone("");
+                setNewPlayerPti("");
+                setShowAddPlayer(false);
+                load();
+              } catch (err: any) {
+                setAddPlayerError(err.message);
+              }
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Name"
+              value={newPlayerName}
+              onChange={(e) => setNewPlayerName(e.target.value)}
+              required
+              autoFocus
+            />
+            <input
+              type="tel"
+              placeholder="Phone (optional)"
+              value={newPlayerPhone}
+              onChange={(e) => setNewPlayerPhone(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="PTI (optional)"
+              value={newPlayerPti}
+              onChange={(e) => setNewPlayerPti(e.target.value)}
+              step="0.1"
+            />
+            {addPlayerError && <p className="error">{addPlayerError}</p>}
+            <button type="submit">Add to Contacts</button>
+          </form>
+        </div>
+      )}
 
       {inviteLink && (
         <div className="invite-link-box">

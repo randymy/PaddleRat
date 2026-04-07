@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -116,6 +117,44 @@ async def import_contacts(
         skipped=skipped,
         contacts=loaded,
     )
+
+
+class CreatePlayerRequest(BaseModel):
+    name: str
+    phone: str | None = None
+    pti: float | None = None
+
+
+@router.post("/create-player", response_model=ContactOut)
+async def create_player(
+    body: CreatePlayerRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a new player and add them as a contact."""
+    phone = normalize_phone(body.phone) if body.phone else None
+
+    # Check if phone already exists
+    if phone:
+        result = await db.execute(select(User).where(User.phone == phone))
+        existing = result.scalar_one_or_none()
+        if existing:
+            raise HTTPException(status_code=400, detail=f"Phone already registered to {existing.name}")
+
+    # Create the user
+    new_user = User(name=body.name, phone=phone, pti=body.pti, role="rat", invited_by_id=user.id)
+    db.add(new_user)
+    await db.flush()
+
+    # Create the contact link
+    contact = Contact(owner_id=user.id, user_id=new_user.id, nickname=body.name)
+    db.add(contact)
+    await db.commit()
+
+    result = await db.execute(
+        select(Contact).where(Contact.id == contact.id).options(selectinload(Contact.user))
+    )
+    return result.scalar_one()
 
 
 @router.delete("/{contact_id}", status_code=204)
