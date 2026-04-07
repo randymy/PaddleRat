@@ -372,8 +372,8 @@ export default function Contacts() {
                 onChange={async (e) => {
                   setDirectorySearch(e.target.value);
                   if (e.target.value.length >= 2) {
-                    const res = await getDirectory(e.target.value, 50, 0);
-                    setDirectoryPlayers(res.players);
+                    const results = await searchPlayers(e.target.value);
+                    setDirectoryPlayers(results.map(p => ({ ...p, has_phone: false })));
                   } else {
                     setDirectoryPlayers([]);
                   }
