@@ -315,7 +315,6 @@ export default function Contacts() {
                   if (e.target.value.length >= 2) {
                     const res = await getDirectory(e.target.value, 50, 0);
                     setDirectoryPlayers(res.players);
-                    setDirectoryTotal(res.total);
                   } else {
                     setDirectoryPlayers([]);
                   }
