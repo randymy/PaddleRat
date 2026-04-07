@@ -489,6 +489,12 @@ h2 {
   gap: 10px;
 }
 
+.match-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 /* Invite link box */
 .invite-link-box {
   background: white;

@@ -16,6 +16,7 @@ import {
   getTeams,
   getTeamPlayers,
   createPlayer,
+  searchPlayers,
   type Contact,
   type Group,
   type GroupDetail,
@@ -140,54 +141,10 @@ export default function Contacts() {
       </div>
 
       {showAddPlayer && (
-        <div className="add-player-form">
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setAddPlayerError("");
-              if (!newPlayerName.trim() || !newPlayerPhone.trim()) return;
-              try {
-                await createPlayer(
-                  newPlayerName.trim(),
-                  newPlayerPhone.trim() || undefined,
-                  newPlayerPti ? parseFloat(newPlayerPti) : undefined,
-                );
-                setNewPlayerName("");
-                setNewPlayerPhone("");
-                setNewPlayerPti("");
-                setShowAddPlayer(false);
-                load();
-              } catch (err: any) {
-                setAddPlayerError(err.message);
-              }
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Name"
-              value={newPlayerName}
-              onChange={(e) => setNewPlayerName(e.target.value)}
-              required
-              autoFocus
-            />
-            <input
-              type="tel"
-              placeholder="Phone number"
-              value={newPlayerPhone}
-              onChange={(e) => setNewPlayerPhone(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="PTI (optional)"
-              value={newPlayerPti}
-              onChange={(e) => setNewPlayerPti(e.target.value)}
-              step="0.1"
-            />
-            {addPlayerError && <p className="error">{addPlayerError}</p>}
-            <button type="submit">Add to Contacts</button>
-          </form>
-        </div>
+        <AddPlayerFlow
+          onDone={() => { setShowAddPlayer(false); load(); }}
+          onCancel={() => setShowAddPlayer(false)}
+        />
       )}
 
       {inviteLink && (
@@ -567,6 +524,129 @@ function PlayerRow({
           + Add with phone
         </button>
       )}
+    </div>
+  );
+}
+
+function AddPlayerFlow({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+  const [step, setStep] = useState<"form" | "match">("form");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pti, setPti] = useState("");
+  const [matches, setMatches] = useState<{ id: number; name: string; pti: number | null }[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmitForm(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !phone.trim()) return;
+    setError("");
+    setLoading(true);
+
+    try {
+      // Search for matching names
+      const results = await searchPlayers(name.trim());
+      if (results.length > 0) {
+        setMatches(results);
+        setStep("match");
+      } else {
+        // No matches — create directly
+        await createPlayer(name.trim(), phone.trim(), pti ? parseFloat(pti) : undefined);
+        onDone();
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSelectMatch(matchId: number) {
+    setError("");
+    setLoading(true);
+    try {
+      await addFromDirectory(matchId, phone.trim());
+      onDone();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSkip() {
+    setError("");
+    setLoading(true);
+    try {
+      await createPlayer(name.trim(), phone.trim(), pti ? parseFloat(pti) : undefined);
+      onDone();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (step === "match") {
+    return (
+      <div className="add-player-form">
+        <p><strong>Is this your contact?</strong></p>
+        <div className="contact-list">
+          {matches.map((m) => (
+            <div key={m.id} className="contact-row">
+              <div className="contact-info">
+                <strong>{m.name}</strong>
+                {m.pti && <span className="pti">PTI {m.pti}</span>}
+              </div>
+              <button className="btn-small" onClick={() => handleSelectMatch(m.id)} disabled={loading}>
+                Yes, this is them
+              </button>
+            </div>
+          ))}
+        </div>
+        {error && <p className="error">{error}</p>}
+        <div className="match-actions">
+          <button className="btn-small btn-secondary" onClick={handleSkip} disabled={loading}>
+            Skip — create new player
+          </button>
+          <button className="btn-small btn-secondary" onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="add-player-form">
+      <form onSubmit={handleSubmitForm}>
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          autoFocus
+        />
+        <input
+          type="tel"
+          placeholder="Phone number"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+        <input
+          type="number"
+          placeholder="PTI (optional)"
+          value={pti}
+          onChange={(e) => setPti(e.target.value)}
+          step="0.1"
+        />
+        {error && <p className="error">{error}</p>}
+        <button type="submit" disabled={loading}>
+          {loading ? "Searching..." : "Add to Contacts"}
+        </button>
+      </form>
     </div>
   );
 }
