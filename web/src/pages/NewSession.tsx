@@ -167,6 +167,9 @@ export default function NewSession() {
 
   return (
     <div className="page">
+      <button onClick={() => navigate("/dashboard")} className="btn-small btn-secondary back-btn">
+        &larr; Back
+      </button>
       <h1>New Session</h1>
 
       <form onSubmit={handleSubmit}>
@@ -330,6 +333,14 @@ export default function NewSession() {
 
         <button type="submit" disabled={loading}>
           {loading ? "Sending Invites..." : "Create Session & Send Invites"}
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => navigate("/dashboard")}
+          style={{ marginTop: "10px", width: "100%" }}
+        >
+          Cancel
         </button>
       </form>
     </div>
