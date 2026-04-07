@@ -10,7 +10,6 @@ import {
   deleteGroup,
   addGroupMember,
   removeGroupMember,
-  getDirectory,
   addFromDirectory,
   getSeries,
   getTeams,
@@ -46,10 +45,6 @@ export default function Contacts() {
   const [selectedTeam, setSelectedTeam] = useState<TeamInfo | null>(null);
   const [phoneInput, setPhoneInput] = useState<{ userId: number; value: string } | null>(null);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
-  const [newPlayerName, setNewPlayerName] = useState("");
-  const [newPlayerPhone, setNewPlayerPhone] = useState("");
-  const [newPlayerPti, setNewPlayerPti] = useState("");
-  const [addPlayerError, setAddPlayerError] = useState("");
   const [editingPti, setEditingPti] = useState<{ contactId: number; value: string } | null>(null);
 
   function load() {
