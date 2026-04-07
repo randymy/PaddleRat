@@ -342,72 +342,77 @@ export default function Contacts() {
             ))}
           </div>
 
-          {/* ── Chicagoland Players ─────────────── */}
+          {/* ── Chicagoland Directory ─────────────── */}
           <div className="section-header">
-            <h2>Chicagoland Players</h2>
-            <button
-              className="btn-small"
-              onClick={async () => {
-                if (!showDirectory) {
-                  const series = await getSeries();
-                  setSeriesList(series);
-                }
-                setShowDirectory(!showDirectory);
-                setSelectedSeries(null);
-                setSelectedTeam(null);
-                setTeamPlayers([]);
-              }}
-            >
-              {showDirectory ? "Hide" : "Browse"}
-            </button>
+            <h2>Chicagoland Directory</h2>
           </div>
 
-          {showDirectory && (
-            <div className="directory-section">
-              {/* Search */}
-              <input
-                type="text"
-                placeholder="Search all players by name..."
-                value={directorySearch}
-                onChange={async (e) => {
-                  setDirectorySearch(e.target.value);
-                  if (e.target.value.length >= 2) {
-                    const results = await searchPlayers(e.target.value);
-                    setDirectoryPlayers(results.map(p => ({ ...p, has_phone: false })));
-                  } else {
-                    setDirectoryPlayers([]);
-                  }
-                }}
-              />
+          {/* Search — always visible */}
+          <input
+            type="text"
+            placeholder="Search all players by name..."
+            value={directorySearch}
+            onChange={async (e) => {
+              setDirectorySearch(e.target.value);
+              if (e.target.value.length >= 2) {
+                const results = await searchPlayers(e.target.value);
+                setDirectoryPlayers(results.map(p => ({ ...p, has_phone: false })));
+              } else {
+                setDirectoryPlayers([]);
+              }
+            }}
+            style={{ marginBottom: "10px" }}
+          />
 
-              {/* Search results */}
-              {directorySearch.length >= 2 && (
-                <div className="contact-list">
-                  {directoryPlayers.map((p) => (
-                    <PlayerRow
-                      key={p.id}
-                      id={p.id}
-                      name={p.name}
-                      pti={p.pti}
-                      hasPhone={p.has_phone || false}
-                      contacts={contacts}
-                      phoneInput={phoneInput}
-                      setPhoneInput={setPhoneInput}
-                      onAdd={async (phone) => {
-                        await addFromDirectory(p.id, phone);
-                        setPhoneInput(null);
-                        load();
-                      }}
-                    />
-                  ))}
-                  {directoryPlayers.length === 0 && (
-                    <p className="empty">No players found.</p>
-                  )}
-                </div>
+          {/* Search results */}
+          {directorySearch.length >= 2 && (
+            <div className="contact-list">
+              {directoryPlayers.map((p) => (
+                <PlayerRow
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  pti={p.pti}
+                  hasPhone={p.has_phone || false}
+                  contacts={contacts}
+                  phoneInput={phoneInput}
+                  setPhoneInput={setPhoneInput}
+                  onAdd={async (phone) => {
+                    await addFromDirectory(p.id, phone);
+                    setPhoneInput(null);
+                    load();
+                  }}
+                />
+              ))}
+              {directoryPlayers.length === 0 && (
+                <p className="empty">No players found.</p>
               )}
+            </div>
+          )}
 
-              {/* Browse by series/team */}
-              {!directorySearch && (
+          {/* Browse by series/team — hidden behind button */}
+          {!directorySearch && (
+            <>
+              <button
+                className="btn-small btn-secondary"
+                onClick={async () => {
+                  if (!showDirectory) {
+                    const series = await getSeries();
+                    setSeriesList(series);
+                  }
+                  setShowDirectory(!showDirectory);
+                  setSelectedSeries(null);
+                  setSelectedTeam(null);
+                  setTeamPlayers([]);
+                }}
+                style={{ marginBottom: "10px" }}
+              >
+                {showDirectory ? "Hide Browse" : "Browse by Division & Team"}
+              </button>
+
+              {showDirectory && (
+                <div className="directory-section">
+                  {!directorySearch && (
                 <>
                   {/* Breadcrumb */}
                   {(selectedSeries || selectedTeam) && (
@@ -497,7 +502,9 @@ export default function Contacts() {
                   )}
                 </>
               )}
-            </div>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
