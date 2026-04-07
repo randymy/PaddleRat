@@ -36,7 +36,6 @@ export default function Contacts() {
   const [showDirectory, setShowDirectory] = useState(false);
   const [directoryPlayers, setDirectoryPlayers] = useState<DirectoryPlayer[]>([]);
   const [directorySearch, setDirectorySearch] = useState("");
-  const [directoryTotal, setDirectoryTotal] = useState(0);
   const [seriesList, setSeriesList] = useState<SeriesInfo[]>([]);
   const [teamsList, setTeamsList] = useState<TeamInfo[]>([]);
   const [teamPlayers, setTeamPlayers] = useState<TeamPlayer[]>([]);
