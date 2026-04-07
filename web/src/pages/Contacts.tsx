@@ -541,7 +541,13 @@ function PlayerRow({
           />
           <button
             className="btn-small"
-            onClick={() => onAdd(phoneInput.value)}
+            onClick={async () => {
+              try {
+                await onAdd(phoneInput.value);
+              } catch (err: any) {
+                alert(err.message);
+              }
+            }}
             disabled={!phoneInput.value}
           >
             Save
@@ -554,7 +560,9 @@ function PlayerRow({
           </button>
         </div>
       ) : hasPhone ? (
-        <button className="btn-small" onClick={() => onAdd()}>
+        <button className="btn-small" onClick={async () => {
+          try { await onAdd(); } catch (err: any) { alert(err.message); }
+        }}>
           + Add
         </button>
       ) : (
