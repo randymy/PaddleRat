@@ -589,6 +589,57 @@ h2 {
   font-weight: 500;
 }
 
+/* Browse by series/team */
+.browse-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.browse-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.browse-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  text-align: left;
+  color: #333;
+}
+
+.browse-item:hover {
+  background: #f0f7ff;
+}
+
+.browse-count {
+  color: #999;
+  font-size: 0.85em;
+}
+
+.phone-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.phone-input-row input {
+  width: 130px;
+  padding: 5px 8px;
+  font-size: 0.85em;
+}
+
 .join-privacy {
   margin-top: 24px;
   padding-top: 16px;

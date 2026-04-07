@@ -175,17 +175,51 @@ export async function getDirectory(search: string = "", limit = 50, offset = 0) 
   );
 }
 
-export async function addFromDirectory(userId: number) {
-  return request<{ status: string }>(`/directory/add/${userId}`, {
+export async function addFromDirectory(userId: number, phone?: string) {
+  return request<{ status: string; has_phone: boolean }>(`/directory/add/${userId}`, {
     method: "POST",
+    body: JSON.stringify({ phone: phone || null }),
   });
 }
 
+// League browse
+export async function getSeries() {
+  return request<SeriesInfo[]>("/directory/series");
+}
+
+export async function getTeams(seriesId: number) {
+  return request<TeamInfo[]>(`/directory/series/${seriesId}/teams`);
+}
+
+export async function getTeamPlayers(teamId: number) {
+  return request<TeamPlayer[]>(`/directory/teams/${teamId}/players`);
+}
+
 // Types
+export interface SeriesInfo {
+  id: number;
+  name: string;
+  team_count: number;
+}
+
+export interface TeamInfo {
+  id: number;
+  name: string;
+  series_name: string;
+}
+
+export interface TeamPlayer {
+  id: number;
+  name: string;
+  pti: number | null;
+  has_phone: boolean;
+}
+
 export interface DirectoryPlayer {
   id: number;
   name: string;
   pti: number | null;
+  has_phone?: boolean;
 }
 
 export interface User {

@@ -159,3 +159,30 @@ class InviteLink(Base):
     )
 
     ratking: Mapped["User"] = relationship()
+
+
+class Series(Base):
+    __tablename__ = "series"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+
+    teams: Mapped[list["Team"]] = relationship(back_populates="series")
+
+
+class Team(Base):
+    __tablename__ = "teams"
+    __table_args__ = (UniqueConstraint("name", "series_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    series_id: Mapped[int] = mapped_column(ForeignKey("series.id"), nullable=False)
+
+    series: Mapped["Series"] = relationship(back_populates="teams")
+
+
+class PlayerTeam(Base):
+    __tablename__ = "player_teams"
+
+    player_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), primary_key=True)

@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
-from app.models import User
+from app.models import PlayerTeam, Series, Team, User
 from app.schemas import UserCreate, UserOut, UserRoleUpdate
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -93,3 +93,79 @@ async def seed_players(
         added += 1
     await db.commit()
     return {"added": added, "skipped": len(players) - added}
+
+
+class LeagueSeries(BaseModel):
+    id: int
+    name: str
+
+
+class LeagueTeam(BaseModel):
+    id: int
+    name: str
+    series_id: int
+
+
+class LeaguePlayerTeam(BaseModel):
+    player_name: str
+    team_id: int
+
+
+class LeagueData(BaseModel):
+    series: list[LeagueSeries]
+    teams: list[LeagueTeam]
+    player_teams: list[LeaguePlayerTeam]
+
+
+@router.post("/seed-league")
+async def seed_league(
+    data: LeagueData,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin: seed series, teams, and player-team links."""
+    _require_admin(user)
+
+    # Series
+    series_added = 0
+    for s in data.series:
+        result = await db.execute(select(Series).where(Series.name == s.name))
+        if not result.scalar_one_or_none():
+            db.add(Series(id=s.id, name=s.name))
+            series_added += 1
+    await db.flush()
+
+    # Teams
+    teams_added = 0
+    for t in data.teams:
+        result = await db.execute(
+            select(Team).where(Team.name == t.name, Team.series_id == t.series_id)
+        )
+        if not result.scalar_one_or_none():
+            db.add(Team(id=t.id, name=t.name, series_id=t.series_id))
+            teams_added += 1
+    await db.flush()
+
+    # Player-team links
+    links_added = 0
+    for pt in data.player_teams:
+        result = await db.execute(select(User).where(User.name == pt.player_name))
+        player = result.scalar_one_or_none()
+        if not player:
+            continue
+        result = await db.execute(
+            select(PlayerTeam).where(
+                PlayerTeam.player_id == player.id,
+                PlayerTeam.team_id == pt.team_id,
+            )
+        )
+        if not result.scalar_one_or_none():
+            db.add(PlayerTeam(player_id=player.id, team_id=pt.team_id))
+            links_added += 1
+    await db.commit()
+
+    return {
+        "series_added": series_added,
+        "teams_added": teams_added,
+        "links_added": links_added,
+    }

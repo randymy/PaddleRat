@@ -12,10 +12,16 @@ import {
   removeGroupMember,
   getDirectory,
   addFromDirectory,
+  getSeries,
+  getTeams,
+  getTeamPlayers,
   type Contact,
   type Group,
   type GroupDetail,
   type DirectoryPlayer,
+  type SeriesInfo,
+  type TeamInfo,
+  type TeamPlayer,
 } from "../lib/api";
 
 export default function Contacts() {
@@ -31,6 +37,12 @@ export default function Contacts() {
   const [directoryPlayers, setDirectoryPlayers] = useState<DirectoryPlayer[]>([]);
   const [directorySearch, setDirectorySearch] = useState("");
   const [directoryTotal, setDirectoryTotal] = useState(0);
+  const [seriesList, setSeriesList] = useState<SeriesInfo[]>([]);
+  const [teamsList, setTeamsList] = useState<TeamInfo[]>([]);
+  const [teamPlayers, setTeamPlayers] = useState<TeamPlayer[]>([]);
+  const [selectedSeries, setSelectedSeries] = useState<SeriesInfo | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<TeamInfo | null>(null);
+  const [phoneInput, setPhoneInput] = useState<{ userId: number; value: string } | null>(null);
 
   function load() {
     Promise.all([getContacts(), getGroups()])
@@ -272,18 +284,20 @@ export default function Contacts() {
             ))}
           </div>
 
-          {/* ── Chicagoland Players Directory ───── */}
+          {/* ── Chicagoland Players ─────────────── */}
           <div className="section-header">
             <h2>Chicagoland Players</h2>
             <button
               className="btn-small"
               onClick={async () => {
                 if (!showDirectory) {
-                  const res = await getDirectory("", 50, 0);
-                  setDirectoryPlayers(res.players);
-                  setDirectoryTotal(res.total);
+                  const series = await getSeries();
+                  setSeriesList(series);
                 }
                 setShowDirectory(!showDirectory);
+                setSelectedSeries(null);
+                setSelectedTeam(null);
+                setTeamPlayers([]);
               }}
             >
               {showDirectory ? "Hide" : "Browse"}
@@ -292,55 +306,205 @@ export default function Contacts() {
 
           {showDirectory && (
             <div className="directory-section">
-              <p className="empty" style={{ margin: "0 0 10px" }}>
-                Players who opted in to be found by other Chicagoland players.
-              </p>
+              {/* Search */}
               <input
                 type="text"
-                placeholder="Search by name..."
+                placeholder="Search all players by name..."
                 value={directorySearch}
                 onChange={async (e) => {
                   setDirectorySearch(e.target.value);
-                  const res = await getDirectory(e.target.value, 50, 0);
-                  setDirectoryPlayers(res.players);
-                  setDirectoryTotal(res.total);
+                  if (e.target.value.length >= 2) {
+                    const res = await getDirectory(e.target.value, 50, 0);
+                    setDirectoryPlayers(res.players);
+                    setDirectoryTotal(res.total);
+                  } else {
+                    setDirectoryPlayers([]);
+                  }
                 }}
               />
-              {directoryPlayers.length === 0 && (
-                <p className="empty">No players found. As more people opt in, they'll appear here.</p>
+
+              {/* Search results */}
+              {directorySearch.length >= 2 && (
+                <div className="contact-list">
+                  {directoryPlayers.map((p) => (
+                    <PlayerRow
+                      key={p.id}
+                      id={p.id}
+                      name={p.name}
+                      pti={p.pti}
+                      hasPhone={p.has_phone || false}
+                      contacts={contacts}
+                      phoneInput={phoneInput}
+                      setPhoneInput={setPhoneInput}
+                      onAdd={async (phone) => {
+                        await addFromDirectory(p.id, phone);
+                        setPhoneInput(null);
+                        load();
+                      }}
+                    />
+                  ))}
+                  {directoryPlayers.length === 0 && (
+                    <p className="empty">No players found.</p>
+                  )}
+                </div>
               )}
-              <div className="contact-list">
-                {directoryPlayers.map((p) => {
-                  const alreadyAdded = contacts.some((c) => c.user_id === p.id);
-                  return (
-                    <div key={p.id} className="contact-row">
-                      <div className="contact-info">
-                        <strong>{p.name}</strong>
-                        {p.pti && <span className="pti">PTI {p.pti}</span>}
-                      </div>
-                      {alreadyAdded ? (
-                        <span className="directory-added">Added</span>
-                      ) : (
+
+              {/* Browse by series/team */}
+              {!directorySearch && (
+                <>
+                  {/* Breadcrumb */}
+                  {(selectedSeries || selectedTeam) && (
+                    <div className="browse-breadcrumb">
+                      <button
+                        className="btn-small btn-secondary"
+                        onClick={() => {
+                          if (selectedTeam) {
+                            setSelectedTeam(null);
+                            setTeamPlayers([]);
+                          } else {
+                            setSelectedSeries(null);
+                            setTeamsList([]);
+                          }
+                        }}
+                      >
+                        &larr; Back
+                      </button>
+                      <span>
+                        {selectedSeries?.name}
+                        {selectedTeam && ` / ${selectedTeam.name}`}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Series list */}
+                  {!selectedSeries && (
+                    <div className="browse-list">
+                      {seriesList.map((s) => (
                         <button
-                          className="btn-small"
+                          key={s.id}
+                          className="browse-item"
                           onClick={async () => {
-                            await addFromDirectory(p.id);
-                            load();
+                            setSelectedSeries(s);
+                            const teams = await getTeams(s.id);
+                            setTeamsList(teams);
                           }}
                         >
-                          + Add
+                          <span>{s.name}</span>
+                          <span className="browse-count">{s.team_count} teams &rsaquo;</span>
                         </button>
-                      )}
+                      ))}
                     </div>
-                  );
-                })}
-              </div>
-              {directoryTotal > directoryPlayers.length && (
-                <p className="empty">{directoryTotal - directoryPlayers.length} more players...</p>
+                  )}
+
+                  {/* Teams list */}
+                  {selectedSeries && !selectedTeam && (
+                    <div className="browse-list">
+                      {teamsList.map((t) => (
+                        <button
+                          key={t.id}
+                          className="browse-item"
+                          onClick={async () => {
+                            setSelectedTeam(t);
+                            const players = await getTeamPlayers(t.id);
+                            setTeamPlayers(players);
+                          }}
+                        >
+                          <span>{t.name}</span>
+                          <span className="browse-count">&rsaquo;</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Team roster */}
+                  {selectedTeam && (
+                    <div className="contact-list">
+                      {teamPlayers.map((p) => (
+                        <PlayerRow
+                          key={p.id}
+                          id={p.id}
+                          name={p.name}
+                          pti={p.pti}
+                          hasPhone={p.has_phone}
+                          contacts={contacts}
+                          phoneInput={phoneInput}
+                          setPhoneInput={setPhoneInput}
+                          onAdd={async (phone) => {
+                            await addFromDirectory(p.id, phone);
+                            setPhoneInput(null);
+                            load();
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+function PlayerRow({
+  id, name, pti, hasPhone, contacts, phoneInput, setPhoneInput, onAdd,
+}: {
+  id: number;
+  name: string;
+  pti: number | null;
+  hasPhone: boolean;
+  contacts: Contact[];
+  phoneInput: { userId: number; value: string } | null;
+  setPhoneInput: (v: { userId: number; value: string } | null) => void;
+  onAdd: (phone?: string) => Promise<void>;
+}) {
+  const alreadyAdded = contacts.some((c) => c.user_id === id);
+  const isEditingPhone = phoneInput?.userId === id;
+
+  return (
+    <div className="contact-row">
+      <div className="contact-info">
+        <strong>{name}</strong>
+        {pti && <span className="pti">PTI {pti}</span>}
+      </div>
+      {alreadyAdded ? (
+        <span className="directory-added">Added</span>
+      ) : isEditingPhone ? (
+        <div className="phone-input-row">
+          <input
+            type="tel"
+            placeholder="Phone number"
+            value={phoneInput.value}
+            onChange={(e) => setPhoneInput({ userId: id, value: e.target.value })}
+            autoFocus
+          />
+          <button
+            className="btn-small"
+            onClick={() => onAdd(phoneInput.value)}
+            disabled={!phoneInput.value}
+          >
+            Save
+          </button>
+          <button
+            className="btn-small btn-secondary"
+            onClick={() => setPhoneInput(null)}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : hasPhone ? (
+        <button className="btn-small" onClick={() => onAdd()}>
+          + Add
+        </button>
+      ) : (
+        <button
+          className="btn-small btn-secondary"
+          onClick={() => setPhoneInput({ userId: id, value: "" })}
+        >
+          + Add with phone
+        </button>
       )}
     </div>
   );
