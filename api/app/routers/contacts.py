@@ -157,6 +157,34 @@ async def create_player(
     return result.scalar_one()
 
 
+class UpdatePtiRequest(BaseModel):
+    pti: float
+
+
+@router.patch("/{contact_id}/pti", response_model=ContactOut)
+async def update_pti(
+    contact_id: int,
+    body: UpdatePtiRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update PTI for a contact's user."""
+    contact = await db.get(Contact, contact_id)
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    if contact.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not your contact")
+
+    target = await db.get(User, contact.user_id)
+    target.pti = body.pti
+    await db.commit()
+
+    result = await db.execute(
+        select(Contact).where(Contact.id == contact_id).options(selectinload(Contact.user))
+    )
+    return result.scalar_one()
+
+
 @router.delete("/{contact_id}", status_code=204)
 async def delete_contact(
     contact_id: int,

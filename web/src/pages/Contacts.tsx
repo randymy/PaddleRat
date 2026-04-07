@@ -17,6 +17,7 @@ import {
   getTeamPlayers,
   createPlayer,
   searchPlayers,
+  updateContactPti,
   type Contact,
   type Group,
   type GroupDetail,
@@ -49,6 +50,7 @@ export default function Contacts() {
   const [newPlayerPhone, setNewPlayerPhone] = useState("");
   const [newPlayerPti, setNewPlayerPti] = useState("");
   const [addPlayerError, setAddPlayerError] = useState("");
+  const [editingPti, setEditingPti] = useState<{ contactId: number; value: string } | null>(null);
 
   function load() {
     Promise.all([getContacts(), getGroups()])
@@ -290,7 +292,44 @@ export default function Contacts() {
               <div key={c.id} className="contact-row">
                 <div className="contact-info">
                   <strong>{c.user.name}</strong>
-                  {c.user.pti && <span className="pti">PTI {c.user.pti}</span>}
+                  {c.user.pti ? (
+                    <span className="pti">PTI {c.user.pti}</span>
+                  ) : editingPti?.contactId === c.id ? (
+                    <div className="phone-input-row">
+                      <input
+                        type="number"
+                        placeholder="PTI"
+                        value={editingPti.value}
+                        onChange={(e) => setEditingPti({ contactId: c.id, value: e.target.value })}
+                        step="0.1"
+                        autoFocus
+                        style={{ width: "70px" }}
+                      />
+                      <button
+                        className="btn-small"
+                        onClick={async () => {
+                          if (editingPti.value) {
+                            await updateContactPti(c.id, parseFloat(editingPti.value));
+                            setEditingPti(null);
+                            load();
+                          }
+                        }}
+                      >
+                        Save
+                      </button>
+                      <button className="btn-small btn-secondary" onClick={() => setEditingPti(null)}>
+                        &times;
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="btn-small btn-secondary"
+                      onClick={() => setEditingPti({ contactId: c.id, value: "" })}
+                      style={{ fontSize: "0.75em", padding: "2px 8px" }}
+                    >
+                      Add PTI
+                    </button>
+                  )}
                   {c.user.phone && <span className="phone">{c.user.phone}</span>}
                 </div>
                 <button
