@@ -165,6 +165,33 @@ function UserManager({ token }: { token: string }) {
     if (res.ok) setResults(await res.json());
   }
 
+  async function handleMakeMatchmaker(id: number, name: string) {
+    const email = prompt(`Enter email for ${name} (required for login):`);
+    if (!email) return;
+
+    // Update role
+    const res = await fetch(`${API_URL}/admin/users/${id}/role`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "ratking" }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.detail || "Failed to update role");
+      return;
+    }
+
+    // Set email via a direct update
+    const res2 = await fetch(`${API_URL}/admin/users/${id}/email`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    setResults(results.map(u => u.id === id ? { ...u, role: "ratking" } : u));
+    alert(`${name} is now a Matchmaker. They can log in with ${email}.`);
+  }
+
   async function handleDelete(id: number, name: string) {
     if (!confirm(`Delete ${name} and all their data? This cannot be undone.`)) return;
     const res = await fetch(`${API_URL}/admin/users/${id}`, {
@@ -203,12 +230,28 @@ function UserManager({ token }: { token: string }) {
                 {u.phone && <span className="phone">{u.phone}</span>}
                 <span className="phone">{u.role}</span>
               </div>
-              <button
-                className="btn-small btn-danger"
-                onClick={() => handleDelete(u.id, u.name)}
-              >
-                Delete
-              </button>
+              <div className="contact-actions">
+                {u.role === "rat" && (
+                  <button
+                    className="btn-small"
+                    onClick={() => handleMakeMatchmaker(u.id, u.name)}
+                  >
+                    Make Matchmaker
+                  </button>
+                )}
+                {u.role === "ratking" && (
+                  <span className="directory-added">Matchmaker</span>
+                )}
+                {u.role === "admin" && (
+                  <span className="status-badge" style={{ background: "#9C27B0" }}>Admin</span>
+                )}
+                <button
+                  className="btn-small btn-danger"
+                  onClick={() => handleDelete(u.id, u.name)}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>

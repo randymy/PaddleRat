@@ -71,6 +71,28 @@ async def update_role(
     return target
 
 
+class UserEmailUpdate(BaseModel):
+    email: str
+
+
+@router.patch("/users/{user_id}/email", response_model=UserOut)
+async def update_email(
+    user_id: int,
+    body: UserEmailUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin: set a user's email."""
+    _require_admin(user)
+    target = await db.get(User, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    target.email = body.email
+    await db.commit()
+    await db.refresh(target)
+    return target
+
+
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: int,
