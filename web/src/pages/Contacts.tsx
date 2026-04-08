@@ -17,6 +17,8 @@ import {
   createPlayer,
   searchPlayers,
   updateContactPti,
+  shareList,
+  shareAllContacts,
   type Contact,
   type Group,
   type GroupDetail,
@@ -220,6 +222,17 @@ export default function Contacts() {
                     {showAddToList ? "Done" : "+ Add"}
                   </button>
                   <button
+                    className="btn-small"
+                    onClick={async () => {
+                      const res = await shareList(selectedGroup.id);
+                      const link = `${window.location.origin}${res.link}`;
+                      navigator.clipboard.writeText(link).catch(() => {});
+                      alert(`Link copied! Share it with other Matchmakers:\n${link}`);
+                    }}
+                  >
+                    Share
+                  </button>
+                  <button
                     className="btn-small btn-danger"
                     onClick={() => handleDeleteList(selectedGroup.id, selectedGroup.name)}
                   >
@@ -275,7 +288,22 @@ export default function Contacts() {
           {/* ── All Contacts ──────────────────────── */}
           <div className="section-header">
             <h2>All Contacts</h2>
-            <span className="contact-count">{contacts.length}</span>
+            <div className="list-detail-actions">
+              <span className="contact-count">{contacts.length}</span>
+              {contacts.length > 0 && (
+                <button
+                  className="btn-small"
+                  onClick={async () => {
+                    const res = await shareAllContacts();
+                    const link = `${window.location.origin}${res.link}`;
+                    navigator.clipboard.writeText(link).catch(() => {});
+                    alert(`Link copied! Share it with other Matchmakers:\n${link}`);
+                  }}
+                >
+                  Share All
+                </button>
+              )}
+            </div>
           </div>
 
           {contacts.length === 0 && (

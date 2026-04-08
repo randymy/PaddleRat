@@ -186,3 +186,19 @@ class PlayerTeam(Base):
 
     player_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), primary_key=True)
+
+
+class SharedList(Base):
+    __tablename__ = "shared_lists"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(Text, nullable=False, unique=True, index=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    group_id: Mapped[int | None] = mapped_column(ForeignKey("groups.id"), nullable=True)
+    list_name: Mapped[str] = mapped_column(Text, nullable=False)
+    user_ids: Mapped[str] = mapped_column(Text, nullable=False)  # comma-separated user IDs
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    owner: Mapped["User"] = relationship()

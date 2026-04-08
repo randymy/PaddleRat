@@ -8,6 +8,7 @@ import SessionDetail from "./pages/SessionDetail";
 import Contacts from "./pages/Contacts";
 import Join from "./pages/Join";
 import Admin from "./pages/Admin";
+import ImportList from "./pages/ImportList";
 import "./App.css";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -65,6 +66,7 @@ function App() {
             }
           />
           <Route path="/join/:code" element={<Join />} />
+          <Route path="/import/:code" element={<ImportList />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

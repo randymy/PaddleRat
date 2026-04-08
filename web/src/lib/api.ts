@@ -133,6 +133,33 @@ export async function removeGroupMember(groupId: number, contactId: number) {
   });
 }
 
+// Share lists
+export async function shareList(groupId: number) {
+  return request<{ code: string; link: string; list_name: string; player_count: number }>(
+    `/share/list/${groupId}`,
+    { method: "POST" }
+  );
+}
+
+export async function shareAllContacts() {
+  return request<{ code: string; link: string; list_name: string; player_count: number }>(
+    "/share/contacts",
+    { method: "POST" }
+  );
+}
+
+export async function getSharedListInfo(code: string) {
+  const res = await fetch(`${API_URL}/share/info/${code}`);
+  if (!res.ok) throw new Error("Shared list not found");
+  return res.json() as Promise<{ list_name: string; owner_name: string; players: { id: number; name: string; pti: number | null }[] }>;
+}
+
+export async function importSharedList(code: string) {
+  return request<{ imported: number; skipped: number }>(`/share/import/${code}`, {
+    method: "POST",
+  });
+}
+
 // Invite links (public — no auth needed)
 export async function createInviteLink() {
   return request<{ code: string; link: string; ratking_name: string }>(
