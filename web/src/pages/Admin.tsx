@@ -182,7 +182,7 @@ function UserManager({ token }: { token: string }) {
     }
 
     // Set email via a direct update
-    const res2 = await fetch(`${API_URL}/admin/users/${id}/email`, {
+    await fetch(`${API_URL}/admin/users/${id}/email`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
