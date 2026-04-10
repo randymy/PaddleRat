@@ -152,6 +152,71 @@ async def delete_user(
     return {"status": "deleted", "name": target.name, "id": user_id}
 
 
+@router.post("/copy-contacts-to-matchmakers")
+async def copy_contacts_to_matchmakers(
+    source_user_id: int | None = None,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin: copy a user's contacts to all other matchmakers/admins."""
+    _require_admin(user)
+
+    source_id = source_user_id or user.id
+
+    # Get source user's contacts
+    result = await db.execute(select(Contact).where(Contact.owner_id == source_id))
+    source_contacts = result.scalars().all()
+
+    if not source_contacts:
+        return {"status": "no_contacts", "source_id": source_id, "copied": 0}
+
+    # Get all other matchmakers and admins
+    result = await db.execute(
+        select(User).where(
+            User.role.in_(["ratking", "admin"]),
+            User.id != source_id,
+        )
+    )
+    matchmakers = result.scalars().all()
+
+    total_added = 0
+    per_user = {}
+
+    for mm in matchmakers:
+        added = 0
+        for sc in source_contacts:
+            # Skip if it would make them their own contact
+            if sc.user_id == mm.id:
+                continue
+            # Skip if they already have this contact
+            existing = await db.execute(
+                select(Contact).where(
+                    Contact.owner_id == mm.id, Contact.user_id == sc.user_id
+                )
+            )
+            if existing.scalar_one_or_none():
+                continue
+            new_contact = Contact(
+                owner_id=mm.id,
+                user_id=sc.user_id,
+                nickname=sc.nickname,
+            )
+            db.add(new_contact)
+            added += 1
+        per_user[mm.name] = added
+        total_added += added
+
+    await db.commit()
+    return {
+        "status": "ok",
+        "source_id": source_id,
+        "source_contact_count": len(source_contacts),
+        "matchmakers_updated": len(matchmakers),
+        "total_contacts_added": total_added,
+        "per_matchmaker": per_user,
+    }
+
+
 class BulkPlayer(BaseModel):
     name: str
     pti: float | None = None
