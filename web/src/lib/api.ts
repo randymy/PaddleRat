@@ -68,6 +68,10 @@ export async function remindSession(id: number) {
   return request<Session>(`/sessions/${id}/remind`, { method: "POST" });
 }
 
+export async function deleteSession(id: number) {
+  return request<void>(`/sessions/${id}`, { method: "DELETE" });
+}
+
 // Contacts
 export async function getContacts() {
   return request<Contact[]>("/contacts");

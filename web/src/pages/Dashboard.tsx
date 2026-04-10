@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getSessions, type Session } from "../lib/api";
+import { deleteSession, getSessions, type Session } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -19,6 +19,17 @@ export default function Dashboard() {
   useEffect(() => {
     getSessions().then(setSessions).finally(() => setLoading(false));
   }, []);
+
+  async function handleClear(e: React.MouseEvent, id: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await deleteSession(id);
+      setSessions((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to clear session");
+    }
+  }
 
   return (
     <div className="page">
@@ -73,6 +84,15 @@ export default function Dashboard() {
             <div className="session-card-footer">
               {s.invitations.filter((i) => i.status === "booked").length}/
               {s.slots_needed} confirmed
+              {s.status === "cancelled" && (
+                <button
+                  className="btn-small"
+                  style={{ marginLeft: "auto" }}
+                  onClick={(e) => handleClear(e, s.id)}
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </Link>
         ))}

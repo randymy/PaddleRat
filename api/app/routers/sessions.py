@@ -102,6 +102,30 @@ async def cancel_session(
     return await _load_session(db, session_id)
 
 
+@router.delete("/{session_id}", status_code=204)
+async def delete_session(
+    session_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a cancelled or expired session."""
+    session = await db.get(Session, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if session.ratking_id != user.id and user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not your session")
+    if session.status not in ("cancelled", "expired"):
+        raise HTTPException(status_code=400, detail="Can only delete cancelled or expired sessions")
+
+    # Delete all invitations first
+    result = await db.execute(select(Invitation).where(Invitation.session_id == session_id))
+    for inv in result.scalars():
+        await db.delete(inv)
+
+    await db.delete(session)
+    await db.commit()
+
+
 @router.post("/{session_id}/remind", response_model=SessionOut)
 async def remind_session(
     session_id: int,

@@ -168,6 +168,8 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.85em;
   color: #666;
   margin-top: 6px;
+  display: flex;
+  align-items: center;
 }
 
 /* Status badge */
